@@ -1,0 +1,7 @@
+<button mat-button color="primary" (click)="createGame()">
+  Create Game
+</button>
+
+<li *ngFor="let game of allGames">
+  {{game | json}}
+</li>

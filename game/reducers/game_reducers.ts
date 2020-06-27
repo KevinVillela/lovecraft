@@ -1,5 +1,3 @@
-import {maxHeaderSize} from 'http';
-
 import {ForceGameState, JoinGame, NewGame, SetInvestigator, StartGame} from '../actions/actions';
 import {Card, Game, GameState, GameStore, getPlayerOrDie, Player, Role} from '../models/models';
 
