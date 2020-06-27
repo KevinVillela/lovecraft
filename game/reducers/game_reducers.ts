@@ -7,7 +7,7 @@ import {dealCardsToPlayers, shuffle} from './utilities';
  * Handles a new game action.
  */
 export function onNewGame(store: GameStore, action: NewGame) {
-  store.games[action.gameId] = {
+  store.setGameForId(action.gameId, {
     id: action.gameId,
     round: 1,
     playerList: [],
@@ -15,7 +15,7 @@ export function onNewGame(store: GameStore, action: NewGame) {
     visibleCards: [],
     visibleElderSigns: 0,
     state: GameState.NOT_STARTED,
-  };
+  });
 }
 
 /**
@@ -28,28 +28,28 @@ export function onJoinGame(store: GameStore, action: JoinGame) {
     hand: [],
   };
 
-  store.games[action.gameId].playerList.push(player);
+  store.addPlayerToGame(action.gameId, player);
 }
 
 /**
  * Handles a start new game action.
  */
 export function onStartGame(store: GameStore, action: StartGame) {
-  startGame(store.games[action.gameId]);
+  startGame(store.gameForId(action.gameId));
 }
 
 /**
  * Handles a force game state action.
  */
 export function onForceGameState(store: GameStore, action: ForceGameState) {
-  store.games[action.game.id] = action.game;
+  store.setGameForId(action.game.id, action.game);
 }
 
 /**
  * Handles a set investigator action.
  */
 export function onSetInvestigator(store: GameStore, action: SetInvestigator) {
-  const game = store.games[action.gameId];
+  const game = store.gameForId(action.gameId);
   game.currentInvestigatorId = getPlayerOrDie(game, action.targetPlayer).id;
 }
 

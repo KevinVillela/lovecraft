@@ -2,10 +2,11 @@ import {makeGame} from '../../testing/test_utils';
 import {Card, GameState} from '../models/models';
 
 import {GameFacade} from './facade';
+import {InMemoryGameStore} from './in_memory_game_store';
 
 describe('CreateGame', () => {
   it('creates games in not started state', () => {
-    const facade = new GameFacade();
+    const facade = new GameFacade(new InMemoryGameStore());
     facade.createGame('id1');
     facade.createGame('id2');
     expect(facade.listGames()).toEqual(['id1', 'id2']);
@@ -14,7 +15,7 @@ describe('CreateGame', () => {
   });
 
   it('throws on create if the ID exists.', () => {
-    const facade = new GameFacade();
+    const facade = new GameFacade(new InMemoryGameStore());
     facade.createGame('id1');
     expect(() => facade.createGame('id1')).toThrow();
   });
@@ -22,7 +23,7 @@ describe('CreateGame', () => {
 
 describe('StartGame', () => {
   it('sets a game to in progress', () => {
-    const facade = new GameFacade();
+    const facade = new GameFacade(new InMemoryGameStore());
     facade.createGame('game1');
     facade.joinGame('game1', 'player1');
     facade.joinGame('game1', 'player2');
@@ -35,7 +36,7 @@ describe('StartGame', () => {
 
 describe('StartGame', () => {
   it('sets a game to in progress', () => {
-    const facade = new GameFacade();
+    const facade = new GameFacade(new InMemoryGameStore());
     facade.createGame('game1');
     facade.joinGame('game1', 'player1');
     facade.joinGame('game1', 'player2');
@@ -48,7 +49,7 @@ describe('StartGame', () => {
 
 describe('Investigate', () => {
   it('sets the state correctly on an initial FUTILE_INVESTIGATION pick', () => {
-    const facade = new GameFacade();
+    const facade = new GameFacade(new InMemoryGameStore());
     facade.forceGameState(makeGame(
         '', 1, {'p0': 'CSRRR', 'p1': 'RRRRR', 'p2': 'SSSRR', 'p3': 'RRRRR'},
         ''));
@@ -74,7 +75,7 @@ describe('Investigate', () => {
   });
 
   it('sets the state correctly on an initial elder sign pick', () => {
-    const facade = new GameFacade();
+    const facade = new GameFacade(new InMemoryGameStore());
     facade.forceGameState(makeGame(
         '', 1, {'p0': 'CRRRR', 'p1': 'RRRRR', 'p2': 'SSSSR', 'p3': 'RRRRR'},
         ''));
@@ -103,7 +104,7 @@ describe('Investigate', () => {
   });
 
   it('sets the state correctly on an initial Cthulhu pick', () => {
-    const facade = new GameFacade();
+    const facade = new GameFacade(new InMemoryGameStore());
     facade.forceGameState(makeGame(
         '', 1, {'p0': 'CRRRR', 'p1': 'RRRRR', 'p2': 'SSSSR', 'p3': 'RRRRR'},
         ''));
@@ -132,7 +133,7 @@ describe('Investigate', () => {
   });
 
   it('sets the state correctly on a final elder sign pick', () => {
-    const facade = new GameFacade();
+    const facade = new GameFacade(new InMemoryGameStore());
     facade.forceGameState(makeGame(
         '', 1, {'p0': 'CRRRR', 'p1': 'RRRRR', 'p2': 'RS', 'p3': 'RRRRR'},
         'SSS'));
@@ -160,7 +161,7 @@ describe('Investigate', () => {
   });
 
   it('moves to the next round when we pick the last card for a round', () => {
-    const facade = new GameFacade();
+    const facade = new GameFacade(new InMemoryGameStore());
     facade.forceGameState(makeGame(
         '', 1, {'p0': 'RRRRC', 'p1': 'RRRRR', 'p2': 'SSSSR', 'p3': 'RRRRR'},
         ''));
@@ -198,7 +199,7 @@ describe('Investigate', () => {
   });
 
   it('ends the game if we finish the fourth round', () => {
-    const facade = new GameFacade();
+    const facade = new GameFacade(new InMemoryGameStore());
     facade.forceGameState(makeGame(
         '', 4, {'p0': 'RC', 'p1': 'RR', 'p2': 'RS', 'p3': 'RR'},
         'SSSRRRRRRRRR'));
@@ -218,7 +219,7 @@ describe('Investigate', () => {
   });
 
   it('lets users go back and forth', () => {
-    const facade = new GameFacade();
+    const facade = new GameFacade(new InMemoryGameStore());
     facade.forceGameState(makeGame(
         'gameThread', 1, {
           'p1@google.com': 'SSRRR',
@@ -247,15 +248,16 @@ describe('Subscribe', () => {
   it('triggers at major events', () => {
     const gameStates = [];
 
-    const facade = new GameFacade();
+    const facade = new GameFacade(new InMemoryGameStore());
     facade.createGame('id');
     facade.subscribeToGame('id', {
       next: (game) => gameStates.push(game),
       error: (error) => {
         throw error;
       },
-      complete: () => {}
-    })
+      complete: () => {
+      }
+    });
 
     facade.joinGame('id', 'p1');
     facade.joinGame('id', 'p2');

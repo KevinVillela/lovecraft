@@ -1,5 +1,5 @@
 import {PlayCard} from '../actions/actions';
-import {Card, Game, GameState, GameStore, getPlayerOrDie, Player, PlayerId} from '../models/models';
+import {Card, Game, GameState, GameStore, getPlayerOrDie, PlayerId} from '../models/models';
 
 import {dealCardsToPlayers} from './utilities';
 
@@ -7,7 +7,7 @@ import {dealCardsToPlayers} from './utilities';
  * Updates the store given a PlayCard action.
  */
 export function onPlayCard(store: GameStore, action: PlayCard) {
-  const game = store.games[action.gameId];
+  const game = store.gameForId(action.gameId);
   playCard(game, action.targetPlayer, action.cardNumber);
 }
 

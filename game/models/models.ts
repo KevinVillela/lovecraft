@@ -12,7 +12,10 @@ export type GameId = string;
  * A holder for all the games known to the server.
  */
 export interface GameStore {
-  games: Record<string, Game>;
+  gameForId(gameId: GameId): Game;
+  setGameForId(gameId: GameId, game: Game);
+  allGames(): Record<string, Game>;
+  addPlayerToGame(gameId: GameId, player: Player);
 }
 
 /**

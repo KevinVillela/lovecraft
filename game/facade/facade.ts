@@ -11,7 +11,9 @@ import {onForceGameState, onJoinGame, onNewGame, onSetInvestigator, onStartGame}
  * of the game server.
  */
 export class GameFacade {
-  private store: GameStore = {games: {}}
+
+  constructor(private readonly store: GameStore) {
+  }
 
   private gameSubjects = new Map<GameId, BehaviorSubject<Game>>();
 
@@ -21,7 +23,7 @@ export class GameFacade {
    * @export
    */
   createGame(gameId: GameId) {
-    const existingGame = this.store.games[gameId];
+    const existingGame = this.store.gameForId(gameId);
     if (existingGame && existingGame.state === GameState.NOT_STARTED) {
       throw new Error(`Game ${gameId} already exists.`)
     } else if (existingGame && existingGame.state === GameState.IN_PROGRESS) {
@@ -99,14 +101,14 @@ export class GameFacade {
    * Gets a list of all the games in progress and their states.
    */
   listGames(): GameId[] {
-    return Object.keys(this.store.games);
+    return Object.keys(this.store.allGames());
   }
 
   /**
    * Gets the current game state. This is for internal use only.
    */
   getGame(gameId: GameId): Game {
-    const game = this.store.games[gameId];
+    const game = this.store.gameForId(gameId);
     if (!game) {
       throw new Error(`No game ${gameId} exists.`);
     }
