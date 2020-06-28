@@ -1,0 +1,37 @@
+<div class="circle" id="circle">
+  <div *ngFor="let player of (players | async)" class="player" [style.top.px]="player.top"
+       [style.left.px]="player.left">
+    <span class="player-name">{{player.player.id}}</span>
+    <div class="cards">
+      <div *ngFor="let card of player.player.hand; index as i" class="card"
+           (click)="investigate(player.player, i + 1)">
+        <img [src]="imageForCard(player.player, card)">
+      </div>
+    </div>
+    <div class="cards">
+      <div class="card" *ngIf="username === player.player.id" [matTooltip]="tooltipForRole(player.player.role)">
+        <img [src]="imageForRole(player.player.role)">
+      </div>
+      <div class="card" *ngIf="game.value?.currentInvestigatorId === player.player.id">
+        <img
+            src="https://cdn4.iconfinder.com/data/icons/proglyphs-miscellaneous/512/Flashlight-512.png">
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="visible-cards">
+  <div *ngFor="let cardRound of (cardRounds | async)" class="visible-cards-round">
+    <div *ngFor="let card of cardRound" class="card">
+      <img [src]="imageForVisibleCard(card)">
+    </div>
+  </div>
+</div>
+
+<ng-container *ngIf="game.value?.state === 'Cultists Win'">
+  <div class="animated intensifies ending">Cultists Win!!</div>
+</ng-container>
+
+<ng-container *ngIf="game.value?.state === 'Investigators Win'">
+  <div class="animated shakeit ending">Investigators Win!!</div>
+</ng-container>

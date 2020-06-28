@@ -5,6 +5,9 @@ import {GameId} from '../../../../game/models/models';
 import {ReplaySubject} from 'rxjs';
 import {takeUntil} from 'rxjs/operators';
 import {MatSnackBar} from '@angular/material/snack-bar';
+import {Router} from '@angular/router';
+import {ErrorService} from '../common/error.service';
+import {AngularFireAuth} from '@angular/fire/auth';
 
 @Component({
   selector: 'app-main-menu',
@@ -13,14 +16,18 @@ import {MatSnackBar} from '@angular/material/snack-bar';
 })
 export class MainMenuComponent implements OnInit {
 
-  createGameStatus: StatusAnd<GameId> = initial();
+  joinGameStatus: StatusAnd<void> = initial();
+  createGameStatus: StatusAnd<void> = initial();
   allGames: GameId[] = [];
 
   /** Handle on-destroy Subject, used to unsubscribe. */
   private readonly destroyed = new ReplaySubject<void>(1);
 
   constructor(private readonly gameService: GameService,
-              private readonly matSnackBar: MatSnackBar) {
+              private readonly matSnackBar: MatSnackBar,
+              private readonly router: Router,
+              private readonly auth: AngularFireAuth,
+              private readonly errorService: ErrorService) {
   }
 
   ngOnInit(): void {
@@ -28,7 +35,19 @@ export class MainMenuComponent implements OnInit {
       if (isReady(val)) {
         this.allGames = val.result;
       } else if (isError(val)) {
-        this.matSnackBar.open(`Error listing games: ${JSON.stringify(val.error)}`);
+        this.errorService.displayError('Error listing games', val.error);
+      }
+    });
+  }
+
+  joinGame(gameId: string) {
+    this.joinGameStatus = loading();
+    this.gameService.joinGame(gameId).pipe(takeUntil(this.destroyed)).subscribe((val) => {
+      this.joinGameStatus = val;
+      if (isError(val)) {
+        this.errorService.displayError('Error joining game', val.error);
+      } else if (isReady(val)) {
+        this.router.navigateByUrl(`lobby/${gameId}`);
       }
     });
   }
@@ -39,7 +58,10 @@ export class MainMenuComponent implements OnInit {
     this.gameService.createGame(randomishId).pipe(takeUntil(this.destroyed)).subscribe((val) => {
       this.createGameStatus = val;
       if (isError(val)) {
-        this.matSnackBar.open(`Error creating game: ${JSON.stringify(val.error)}`);
+        this.errorService.displayError('Error creating game', val.error);
+      } else if (isReady(val)) {
+        // TODO do this for the user.
+        this.matSnackBar.open(`Game with ID ${randomishId} created - select it to join`, 'Ok...', {duration: 3000});
       }
     });
   }

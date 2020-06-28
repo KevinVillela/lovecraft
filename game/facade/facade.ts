@@ -1,5 +1,5 @@
-import {BehaviorSubject, Observer} from 'rxjs';
-import {distinctUntilChanged} from 'rxjs/operators';
+import {Observable, Observer} from 'rxjs';
+import {map, switchMap, take, tap} from 'rxjs/operators';
 
 import {ForceGameState, JoinGame, NewGame, PlayCard, SetInvestigator, StartGame} from '../actions/actions';
 import {Game, GameId, GameState, GameStore, getPlayerOrDie, PlayerId} from '../models/models';
@@ -15,23 +15,22 @@ export class GameFacade {
   constructor(private readonly store: GameStore) {
   }
 
-  private gameSubjects = new Map<GameId, BehaviorSubject<Game>>();
-
   /**
    * Starts a new game.
    *
    * @export
    */
   createGame(gameId: GameId) {
-    const existingGame = this.store.gameForId(gameId);
-    if (existingGame && existingGame.state === GameState.NOT_STARTED) {
-      throw new Error(`Game ${gameId} already exists.`)
-    } else if (existingGame && existingGame.state === GameState.IN_PROGRESS) {
-      throw new Error(`Game ${gameId} is in progress.`);
-    }
+    return this.store.gameForId(gameId).pipe(take(1), map(existingGame => {
+      if (existingGame && existingGame.state === GameState.NOT_STARTED) {
+        throw new Error(`Game ${gameId} already exists.`)
+      } else if (existingGame && existingGame.state === GameState.IN_PROGRESS) {
+        throw new Error(`Game ${gameId} is in progress.`);
+      }
 
-    // Go ahead and create/replace the game.
-    onNewGame(this.store, new NewGame(gameId));
+      // Go ahead and create/replace the game.
+      return onNewGame(this.store, new NewGame(gameId));
+    }));
   }
 
   /**
@@ -40,31 +39,31 @@ export class GameFacade {
    * @export
    */
   joinGame(gameId: GameId, playerId: PlayerId) {
-    const existingGame = this.getGame(gameId);
-    if (existingGame.playerList.some((player) => player.id === playerId)) {
-      throw new Error(`${playerId} is already in ${gameId}`);
-    }
-    if (existingGame.state !== GameState.NOT_STARTED) {
-      throw new Error(`${gameId} is already in progres.`);
-    }
+    return this.getGame(gameId).pipe(take(1), switchMap(existingGame => {
+      if (existingGame.playerList.some((player) => player.id === playerId)) {
+        throw new Error(`${playerId} is already in ${gameId}`);
+      }
+      if (existingGame.state !== GameState.NOT_STARTED) {
+        throw new Error(`${gameId} is already in progres.`);
+      }
 
-    onJoinGame(this.store, new JoinGame(gameId, playerId));
-    this.notify(gameId);
+      return onJoinGame(this.store, new JoinGame(gameId, playerId));
+    }), tap(() => this.notify(gameId)));
   }
 
   /**
    * Starts a game, setting up the first hand.
    */
-  startGame(gameId: GameId) {
-    const existingGame = this.getGame(gameId);
-    if (existingGame.state !== GameState.NOT_STARTED) {
-      throw new Error(`${gameId} has already been started.`);
-    }
-    if (existingGame.playerList.length > 8) {
-      throw new Error('We only support 4-8 players at this time.');
-    }
-    onStartGame(this.store, new StartGame(gameId));
-    this.notify(gameId);
+  startGame(gameId: GameId): Observable<void> {
+    return this.getGame(gameId).pipe(take(1), switchMap(existingGame => {
+      if (existingGame.state !== GameState.NOT_STARTED) {
+        throw new Error(`${gameId} has already been started.`);
+      }
+      if (existingGame.playerList.length > 8) {
+        throw new Error('We only support 4-8 players at this time.');
+      }
+      return onStartGame(this.store, new StartGame(gameId));
+    }), tap(() => this.notify(gameId)));
   }
 
   /**
@@ -73,41 +72,41 @@ export class GameFacade {
   investigate(
       gameId: GameId, sourcePlayerId: PlayerId, targetPlayerId: PlayerId,
       cardNumber: number) {
-    const game = this.getGame(gameId);
-    if (game.state !== GameState.IN_PROGRESS) {
-      throw new Error(`${gameId} is not in progress.`);
-    }
-    const targetPlayer = getPlayerOrDie(game, targetPlayerId);
-    if (cardNumber < 1) {
-      throw new Error(`Card number must be >= 1.`);
-    }
-    if (cardNumber > targetPlayer.hand.length) {
-      throw new Error(
-          `${targetPlayerId} only has ${targetPlayer.hand.length} cards`);
-    }
-    if (game.currentInvestigatorId !== sourcePlayerId) {
-      throw new Error(`${sourcePlayerId} is not the current investigator.`);
-    }
-    if (sourcePlayerId === targetPlayerId) {
-      throw new Error('You cannot investigate yourself.');
-    }
+    return this.getGame(gameId).pipe(take(1), switchMap(game => {
+      if (game.state !== GameState.IN_PROGRESS) {
+        throw new Error(`${gameId} is not in progress.`);
+      }
+      const targetPlayer = getPlayerOrDie(game, targetPlayerId);
+      if (cardNumber < 1) {
+        throw new Error(`Card number must be >= 1.`);
+      }
+      if (cardNumber > targetPlayer.hand.length) {
+        throw new Error(
+            `${targetPlayerId} only has ${targetPlayer.hand.length} cards`);
+      }
+      if (game.currentInvestigatorId !== sourcePlayerId) {
+        throw new Error(`${sourcePlayerId} is not the current investigator.`);
+      }
+      if (sourcePlayerId === targetPlayerId) {
+        throw new Error('You cannot investigate yourself.');
+      }
 
-    // Play the card. This also sets the current investigator.
-    onPlayCard(this.store, new PlayCard(gameId, targetPlayerId, cardNumber));
-    this.notify(gameId);
+      // Play the card. This also sets the current investigator.
+      return onPlayCard(this.store, new PlayCard(gameId, targetPlayerId, cardNumber));
+    }), tap(() => this.notify(gameId)));
   }
 
   /**
    * Gets a list of all the games in progress and their states.
    */
-  listGames(): GameId[] {
-    return Object.keys(this.store.allGames());
+  listGames(): Observable<GameId[]> {
+    return this.store.allGames().pipe(map(games => Object.keys(games)));
   }
 
   /**
    * Gets the current game state. This is for internal use only.
    */
-  getGame(gameId: GameId): Game {
+  getGame(gameId: GameId): Observable<Game> {
     const game = this.store.gameForId(gameId);
     if (!game) {
       throw new Error(`No game ${gameId} exists.`);
@@ -141,17 +140,7 @@ export class GameFacade {
    * to the next.
    */
   subscribeToGame(gameId: GameId, observer: Observer<Game>) {
-    const game = this.getGameCopy(gameId);
-    if (!this.gameSubjects.has(gameId)) {
-      this.gameSubjects.set(gameId, new BehaviorSubject(game));
-    }
-
-    // Only emit when things changed using deep equality.
-    this.gameSubjects.get(gameId)
-        .pipe(distinctUntilChanged((x: Game, y: Game) => {
-          return JSON.stringify(x) == JSON.stringify(y);
-        }))
-        .subscribe(observer);
+    this.store.subscribeToGame(gameId, observer);
   }
 
   /**
@@ -160,12 +149,7 @@ export class GameFacade {
    * the surface area is simple enough that that's probably fine.
    */
   private notify(gameId: GameId) {
-    // Make a deep copy of the game.
-    const game = this.getGameCopy(gameId);
-    if (!this.gameSubjects.has(gameId)) {
-      return;
-    }
-    this.gameSubjects.get(gameId).next(game);
+    this.store.notify(gameId);
   }
 
   private getGameCopy(gameId: GameId) {

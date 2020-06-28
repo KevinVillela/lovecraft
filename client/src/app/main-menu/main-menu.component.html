@@ -1,7 +1,11 @@
-<button mat-button color="primary" (click)="createGame()">
-  Create Game
-</button>
+<div class="container">
+  <button mat-raised-button color="primary" (click)="createGame()">
+    Create Game
+  </button>
 
-<li *ngFor="let game of allGames">
-  {{game | json}}
-</li>
+  <mat-selection-list [multiple]="false">
+    <mat-list-option *ngFor="let game of allGames" (click)="joinGame(game)">
+      Join game with ID {{ game }}
+    </mat-list-option>
+  </mat-selection-list>
+</div>

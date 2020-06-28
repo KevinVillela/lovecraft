@@ -1,0 +1,11 @@
+<div class="container">
+  <button mat-raised-button color="primary" (click)="startGame()">
+    Start Game
+  </button>
+
+  <mat-list>
+    <mat-list-item *ngFor="let player of (game | async)?.playerList">
+      {{ player.id }}
+    </mat-list-item>
+  </mat-list>
+</div>

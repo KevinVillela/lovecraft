@@ -1,6 +1,8 @@
 /**
  * A unique ID for a player.
  */
+import {Observable, Observer} from 'rxjs';
+
 export type PlayerId = string;
 
 /**
@@ -9,13 +11,20 @@ export type PlayerId = string;
 export type GameId = string;
 
 /**
- * A holder for all the games known to the server.
+ * A DAO for all the games. All operations are synchronous.
  */
 export interface GameStore {
-  gameForId(gameId: GameId): Game;
+  gameForId(gameId: GameId): Observable<Game>;
+
   setGameForId(gameId: GameId, game: Game);
-  allGames(): Record<string, Game>;
-  addPlayerToGame(gameId: GameId, player: Player);
+
+  allGames(): Observable<Record<string, Game>>;
+
+  addPlayerToGame(gameId: GameId, player: Player): Observable<void>;
+
+  subscribeToGame(gameId: GameId, observer: Observer<Game>);
+
+  notify(gameId: GameId): void;
 }
 
 /**
@@ -36,9 +45,6 @@ export interface Game {
 
   /** The cards that have been played already. */
   visibleCards: Card[];
-
-  /** The number of visible Elder signs (a denormalization of visible cards) */
-  visibleElderSigns: number;
 
   /** The current state of the game. */
   state: GameState;

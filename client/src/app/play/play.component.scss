@@ -1,0 +1,70 @@
+:host {
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+}
+
+.circle {
+  width: 1000px;
+  height: 600px;
+  position: relative;
+}
+
+.player {
+  position: absolute;
+  flex-direction: column;
+  transition: transform 0.2s ease;
+  display: flex;
+  overflow: hidden;
+
+  &:hover {
+    transform: scale(1.5);
+    cursor: pointer;
+  }
+
+  .player-name {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 250px;
+    height: 50px;
+    background: black;
+    color: papayawhip;
+    text-align: center;
+  }
+}
+
+.cards {
+  display: flex;
+  justify-content: center;
+}
+
+.card {
+  img {
+    height: 48px;
+    width: 48px;
+    background: white;
+    border: dimgray 1px solid;
+  }
+}
+
+.visible-cards {
+  display: flex;
+  flex-direction: column;
+  width: 400px;
+  margin: 8px;
+
+  .visible-cards-round {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    margin: 24px;
+  }
+}
+
+.ending {
+  font-size: 100px;
+  color: white;
+  position: absolute;
+}

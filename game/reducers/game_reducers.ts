@@ -1,7 +1,8 @@
 import {ForceGameState, JoinGame, NewGame, SetInvestigator, StartGame} from '../actions/actions';
-import {Card, Game, GameState, GameStore, getPlayerOrDie, Player, Role} from '../models/models';
+import {Card, Game, GameId, GameState, GameStore, getPlayerOrDie, Player, Role} from '../models/models';
 
 import {dealCardsToPlayers, shuffle} from './utilities';
+import {map, take} from 'rxjs/operators';
 
 /**
  * Handles a new game action.
@@ -13,7 +14,6 @@ export function onNewGame(store: GameStore, action: NewGame) {
     playerList: [],
     currentInvestigatorId: undefined,
     visibleCards: [],
-    visibleElderSigns: 0,
     state: GameState.NOT_STARTED,
   });
 }
@@ -28,14 +28,16 @@ export function onJoinGame(store: GameStore, action: JoinGame) {
     hand: [],
   };
 
-  store.addPlayerToGame(action.gameId, player);
+  return store.addPlayerToGame(action.gameId, player);
 }
 
 /**
  * Handles a start new game action.
  */
 export function onStartGame(store: GameStore, action: StartGame) {
-  startGame(store.gameForId(action.gameId));
+  return store.gameForId(action.gameId).pipe(take(1), map(game => {
+    return startGame(store, game, action.gameId);
+  }))
 }
 
 /**
@@ -49,14 +51,15 @@ export function onForceGameState(store: GameStore, action: ForceGameState) {
  * Handles a set investigator action.
  */
 export function onSetInvestigator(store: GameStore, action: SetInvestigator) {
-  const game = store.gameForId(action.gameId);
-  game.currentInvestigatorId = getPlayerOrDie(game, action.targetPlayer).id;
+  return store.gameForId(action.gameId).pipe(take(1), map(game => {
+    game.currentInvestigatorId = getPlayerOrDie(game, action.targetPlayer).id;
+  }));
 }
 
 /**
  * Handles the state transition to the game starting.
  */
-export function startGame(game: Game) {
+export function startGame(store: GameStore, game: Game, gameId: GameId) {
   const setup = PLAYER_SETUPS[game.playerList.length];
   if (!setup) {
     throw new Error(`Invalid player count: ${game.playerList.length}`);
@@ -72,6 +75,7 @@ export function startGame(game: Game) {
 
   // Start the game.
   game.state = GameState.IN_PROGRESS;
+  return store.setGameForId(gameId, game);
 }
 
 /**
