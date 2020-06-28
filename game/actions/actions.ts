@@ -15,7 +15,7 @@ export interface Action {
 
 export class NewGame implements Action {
   type = ActionType.NEW_GAME;
-  constructor(public gameId: GameId) {}
+  constructor(public gameId: GameId, public playerId: PlayerId) {}
 }
 
 export class JoinGame implements Action {

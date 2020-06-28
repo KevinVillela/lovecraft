@@ -11,10 +11,11 @@ export function onNewGame(store: GameStore, action: NewGame) {
   store.setGameForId(action.gameId, {
     id: action.gameId,
     round: 1,
-    playerList: [],
+    playerList: [{id: action.playerId, role: Role.NOT_SET, hand: []}],
     currentInvestigatorId: undefined,
     visibleCards: [],
     state: GameState.NOT_STARTED,
+    created: new Date()
   });
 }
 

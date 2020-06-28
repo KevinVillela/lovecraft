@@ -1,5 +1,5 @@
-import {Component, OnInit} from '@angular/core';
-import {ReplaySubject, Subject} from 'rxjs';
+import {ChangeDetectionStrategy, Component, OnInit} from '@angular/core';
+import {ReplaySubject} from 'rxjs';
 import {Game, GameId, GameState} from '../../../../game/models/models';
 import {GameService} from '../game/game.service';
 import {ActivatedRoute, Router} from '@angular/router';
@@ -11,12 +11,13 @@ import {ErrorService} from '../common/error.service';
 @Component({
   selector: 'app-lobby',
   templateUrl: './lobby.component.html',
-  styleUrls: ['./lobby.component.scss']
+  styleUrls: ['./lobby.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class LobbyComponent implements OnInit {
 
   startGameStatus: StatusAnd<void> = initial();
-  game = new Subject<Game>();
+  game = new ReplaySubject<Game>();
   private readonly gameId: GameId;
 
   /** Handle on-destroy Subject, used to unsubscribe. */
@@ -28,12 +29,12 @@ export class LobbyComponent implements OnInit {
               private readonly errorService: ErrorService,
               route: ActivatedRoute) {
     this.gameId = route.snapshot.paramMap.get('game_id');
-    this.gameService.subscribeToGame(this.gameId, this.game);
     this.game.pipe(takeUntil(this.destroyed)).subscribe((val) => {
-      if (val.state === GameState.IN_PROGRESS) {
+      if (val?.state === GameState.IN_PROGRESS) {
         this.router.navigateByUrl(`gameon/${this.gameId}`);
       }
     });
+    this.gameService.subscribeToGame(this.gameId, this.game);
   }
 
   ngOnInit(): void {

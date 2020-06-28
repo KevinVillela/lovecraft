@@ -21,7 +21,7 @@ export class GameService {
   constructor(private readonly gameFacade: GameFacade,
               private readonly auth: AngularFireAuth) {
     this.auth.user.subscribe(value => {
-      this.username = value.displayName || '';
+      this.username = value?.displayName || '';
     });
   }
 
@@ -32,13 +32,13 @@ export class GameService {
    */
   createGame(gameId: GameId): Observable<StatusAnd<void>> {
     try {
-      return this.gameFacade.createGame(gameId).pipe(wrap);
+      return this.gameFacade.createGame(gameId, this.username).pipe(wrap);
     } catch (e) {
       return of(error(e));
     }
   }
 
-  listGamesStream(): Observable<StatusAnd<GameId[]>> {
+  listGamesStream(): Observable<StatusAnd<Record<string, Game>>> {
     return this.gameFacade.listGames().pipe(wrap);
   }
 

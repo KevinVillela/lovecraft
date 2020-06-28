@@ -4,8 +4,10 @@
   </button>
 
   <mat-selection-list [multiple]="false">
-    <mat-list-option *ngFor="let game of allGames" (click)="joinGame(game)">
-      Join game with ID {{ game }}
+    <mat-list-option *ngFor="let game of allGames | keyvalue | orderByDate"
+                     (click)="joinGame(game.key)">
+      <div mat-line>{{game.key}}</div>
+      <div mat-line>Created {{game.value.created | date:'medium'}}</div>
     </mat-list-option>
   </mat-selection-list>
 </div>

@@ -19,7 +19,7 @@
   overflow: hidden;
 
   &:hover {
-    transform: scale(1.5);
+    //transform: scale(1.5);
     cursor: pointer;
   }
 
@@ -47,6 +47,10 @@
     background: white;
     border: dimgray 1px solid;
   }
+}
+
+.role {
+  margin-right: 16px;
 }
 
 .visible-cards {

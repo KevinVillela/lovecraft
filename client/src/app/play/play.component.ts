@@ -8,11 +8,30 @@ import {MatSnackBar} from '@angular/material/snack-bar';
 import {map, takeUntil} from 'rxjs/operators';
 import {ErrorService} from '../common/error.service';
 import {AngularFireAuth} from '@angular/fire/auth';
+import {animate, state, style, transition, trigger} from '@angular/animations';
 
 @Component({
   selector: 'app-play',
   templateUrl: './play.component.html',
-  styleUrls: ['./play.component.scss']
+  styleUrls: ['./play.component.scss'],
+  animations: [
+    // the fade-in/fade-out animation.
+    trigger('simpleFadeAnimation', [
+
+      // the "in" style determines the "resting" state of the element when it is visible.
+      state('in', style({opacity: 1})),
+
+      // fade in when created. this could also be written as transition('void => *')
+      transition(':enter', [
+        style({opacity: 0}),
+        animate(600)
+      ]),
+
+      // fade out when destroyed. this could also be written as transition('void => *')
+      transition(':leave',
+          animate(600, style({opacity: 0})))
+    ])
+  ]
 })
 export class PlayComponent implements OnInit {
 
@@ -88,6 +107,19 @@ export class PlayComponent implements OnInit {
     }
   }
 
+  tooltipForCard(card: Card) {
+    switch (card) {
+      case Card.FUTILE_INVESTIGATION:
+        return 'A rock.';
+      case Card.ELDER_SIGN:
+        return 'An Elder sign! Go good guys!';
+      case Card.CTHULHU:
+        return 'Oh no, a Cthulhu!';
+      case Card.INSANITYS_GRASP:
+        return 'Insanity\'s grasp - no talking!';
+    }
+  }
+
   imageForCard(player: Player, card: Card) {
     if (player.id !== this.username) {
       return 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/46/Question_mark_%28black%29.svg/1200px-Question_mark_%28black%29.svg.png';
@@ -106,6 +138,10 @@ export class PlayComponent implements OnInit {
       case Card.INSANITYS_GRASP:
         return 'https://www.theglobeandmail.com/resizer/oIPwhVmLkTDNZPvo0V3VrL0dHzo=/4820x0/filters:quality(80)/arc-anglerfish-tgam-prod-tgam.s3.amazonaws.com/public/LDMBR7HMIZBY5ID2IRPIPETAYA.jpg';
     }
+  }
+
+  trackByIndex(index: number) {
+    return index;
   }
 
   ngOnDestroy() {

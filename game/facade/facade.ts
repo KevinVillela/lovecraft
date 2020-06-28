@@ -20,7 +20,7 @@ export class GameFacade {
    *
    * @export
    */
-  createGame(gameId: GameId) {
+  createGame(gameId: GameId, playerId: PlayerId) {
     return this.store.gameForId(gameId).pipe(take(1), map(existingGame => {
       if (existingGame && existingGame.state === GameState.NOT_STARTED) {
         throw new Error(`Game ${gameId} already exists.`)
@@ -29,7 +29,7 @@ export class GameFacade {
       }
 
       // Go ahead and create/replace the game.
-      return onNewGame(this.store, new NewGame(gameId));
+      return onNewGame(this.store, new NewGame(gameId,playerId));
     }));
   }
 
@@ -99,8 +99,8 @@ export class GameFacade {
   /**
    * Gets a list of all the games in progress and their states.
    */
-  listGames(): Observable<GameId[]> {
-    return this.store.allGames().pipe(map(games => Object.keys(games)));
+  listGames(): Observable<Record<string, Game>> {
+    return this.store.allGames();
   }
 
   /**

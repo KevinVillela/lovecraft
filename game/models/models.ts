@@ -48,6 +48,9 @@ export interface Game {
 
   /** The current state of the game. */
   state: GameState;
+
+  /** When the game was created. */
+  created: Date;
 }
 
 /**

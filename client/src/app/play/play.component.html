@@ -1,18 +1,27 @@
 <div class="circle" id="circle">
-  <div *ngFor="let player of (players | async)" class="player" [style.top.px]="player.top"
+  <div *ngFor="let player of (players | async); trackBy: trackByIndex" class="player"
+       [style.top.px]="player.top"
        [style.left.px]="player.left">
-    <span class="player-name">{{player.player.id}}</span>
+    <span class="player-name">
+      <div class="card role" *ngIf="username === player.player.id"
+           [matTooltip]="tooltipForRole(player.player.role)">
+      <img [src]="imageForRole(player.player.role)">
+    </div>
+      {{player.player.id}}
+    </span>
     <div class="cards">
-      <div *ngFor="let card of player.player.hand; index as i" class="card"
-           (click)="investigate(player.player, i + 1)">
+      <div *ngFor="let card of player.player.hand; trackBy: trackByIndex; index as i" class="card"
+           [@simpleFadeAnimation]="'in'"
+           [matTooltip]="tooltipForCard(card)"
+           (click)=" investigate(player.player, i + 1)
+      ">
         <img [src]="imageForCard(player.player, card)">
       </div>
     </div>
     <div class="cards">
-      <div class="card" *ngIf="username === player.player.id" [matTooltip]="tooltipForRole(player.player.role)">
-        <img [src]="imageForRole(player.player.role)">
-      </div>
-      <div class="card" *ngIf="game.value?.currentInvestigatorId === player.player.id">
+      <div class="card" *ngIf="game.value?.currentInvestigatorId === player.player.id"
+           matTooltip="The investigator."
+           [@simpleFadeAnimation]="'in'">
         <img
             src="https://cdn4.iconfinder.com/data/icons/proglyphs-miscellaneous/512/Flashlight-512.png">
       </div>
@@ -21,9 +30,13 @@
 </div>
 
 <div class="visible-cards">
-  <div *ngFor="let cardRound of (cardRounds | async)" class="visible-cards-round">
-    <div *ngFor="let card of cardRound" class="card">
-      <img [src]="imageForVisibleCard(card)">
+  <div *ngFor="let cardRound of (cardRounds | async); trackBy: trackByIndex;"
+       class="visible-cards-round">
+    <div *ngFor="let card of cardRound; trackBy: trackByIndex;" class="card"
+         [@simpleFadeAnimation]="'in'"
+         [matTooltip]="tooltipForCard(card)">
+      <img [src]=" imageForVisibleCard(card)
+    ">
     </div>
   </div>
 </div>

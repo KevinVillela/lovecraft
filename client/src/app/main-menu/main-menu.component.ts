@@ -1,7 +1,7 @@
 import {Component, OnInit} from '@angular/core';
 import {GameService} from '../game/game.service';
 import {initial, isError, isReady, loading, StatusAnd} from '../common/status_and';
-import {GameId} from '../../../../game/models/models';
+import {Game} from '../../../../game/models/models';
 import {ReplaySubject} from 'rxjs';
 import {takeUntil} from 'rxjs/operators';
 import {MatSnackBar} from '@angular/material/snack-bar';
@@ -18,7 +18,7 @@ export class MainMenuComponent implements OnInit {
 
   joinGameStatus: StatusAnd<void> = initial();
   createGameStatus: StatusAnd<void> = initial();
-  allGames: GameId[] = [];
+  allGames: Record<string, Game> = {};
 
   /** Handle on-destroy Subject, used to unsubscribe. */
   private readonly destroyed = new ReplaySubject<void>(1);
@@ -41,6 +41,10 @@ export class MainMenuComponent implements OnInit {
   }
 
   joinGame(gameId: string) {
+    if (this.allGames[gameId].playerList.find((player) => player.id === this.gameService.username)) {
+      this.router.navigateByUrl(`lobby/${gameId}`);
+      return;
+    }
     this.joinGameStatus = loading();
     this.gameService.joinGame(gameId).pipe(takeUntil(this.destroyed)).subscribe((val) => {
       this.joinGameStatus = val;
@@ -60,8 +64,7 @@ export class MainMenuComponent implements OnInit {
       if (isError(val)) {
         this.errorService.displayError('Error creating game', val.error);
       } else if (isReady(val)) {
-        // TODO do this for the user.
-        this.matSnackBar.open(`Game with ID ${randomishId} created - select it to join`, 'Ok...', {duration: 3000});
+        this.router.navigateByUrl(`lobby/${randomishId}`);
       }
     });
   }
