@@ -29,7 +29,7 @@ export class GameFacade {
       }
 
       // Go ahead and create/replace the game.
-      return onNewGame(this.store, new NewGame(gameId,playerId));
+      return onNewGame(this.store, new NewGame(gameId, playerId));
     }));
   }
 
@@ -48,7 +48,9 @@ export class GameFacade {
       }
 
       return onJoinGame(this.store, new JoinGame(gameId, playerId));
-    }), tap(() => this.notify(gameId)));
+    }), tap(() => {
+      this.notify(gameId)
+    }));
   }
 
   /**
@@ -118,8 +120,9 @@ export class GameFacade {
    * Sets the investigator to a specific player. This is just for testing.
    */
   setInvestigator(gameId: GameId, targetPlayerId: PlayerId) {
-    onSetInvestigator(this.store, new SetInvestigator(gameId, targetPlayerId));
-    this.notify(gameId);
+    return onSetInvestigator(this.store, new SetInvestigator(gameId, targetPlayerId)).pipe(tap(() => {
+      this.notify(gameId);
+    }));
   }
 
   /**

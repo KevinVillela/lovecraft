@@ -1,49 +1,70 @@
-import {makeGame} from '../../testing/test_utils';
+import {makeGame} from '../testing/test_utils';
 import {Card, GameState} from '../models/models';
 
 import {GameFacade} from './facade';
 import {InMemoryGameStore} from './in_memory_game_store';
+import {BehaviorSubject} from 'rxjs';
 
 describe('CreateGame', () => {
   it('creates games in not started state', () => {
     const facade = new GameFacade(new InMemoryGameStore());
-    facade.createGame('id1');
-    facade.createGame('id2');
-    expect(facade.listGames()).toEqual(['id1', 'id2']);
-    expect(facade.getGame('id1').state).toEqual(GameState.NOT_STARTED);
-    expect(facade.getGame('id2').state).toEqual(GameState.NOT_STARTED);
+    facade.createGame('id1', 'player1').subscribe();
+    facade.createGame('id2', 'player2').subscribe();
+    const listGames = new BehaviorSubject(null);
+    facade.listGames().subscribe(listGames);
+    expect(Object.keys(listGames.value)).toEqual(['id1', 'id2']);
+    const game1 = new BehaviorSubject(null);
+    facade.getGame('id1').subscribe(game1);
+    expect(game1.value.state).toEqual(GameState.NOT_STARTED);
+
+    const game2 = new BehaviorSubject(null);
+    facade.getGame('id1').subscribe(game2);
+    expect(game2.value.state).toEqual(GameState.NOT_STARTED);
+    expect(game2.value.state).toEqual(GameState.NOT_STARTED);
   });
 
   it('throws on create if the ID exists.', () => {
     const facade = new GameFacade(new InMemoryGameStore());
-    facade.createGame('id1');
-    expect(() => facade.createGame('id1')).toThrow();
+
+    const game1 = new BehaviorSubject(null);
+    facade.createGame('id1', 'player1').subscribe(game1);
+
+    const game2 = new BehaviorSubject(null);
+    facade.createGame('id1', 'player2').subscribe(game2);
+    expect(game2.hasError).toBe(true);
   });
 });
 
 describe('StartGame', () => {
   it('sets a game to in progress', () => {
     const facade = new GameFacade(new InMemoryGameStore());
-    facade.createGame('game1');
-    facade.joinGame('game1', 'player1');
-    facade.joinGame('game1', 'player2');
-    facade.joinGame('game1', 'player3');
-    facade.joinGame('game1', 'player4');
-    facade.startGame('game1');
-    expect(facade.getGame('game1').state).toEqual(GameState.IN_PROGRESS);
+
+    facade.createGame('game1', 'player1').subscribe();
+    facade.joinGame('game1', 'player2').subscribe();
+    facade.joinGame('game1', 'player3').subscribe();
+    facade.joinGame('game1', 'player4').subscribe();
+    facade.startGame('game1').subscribe();
+
+    const game1 = new BehaviorSubject(null);
+    facade.getGame('game1').subscribe(game1);
+    expect(game1.value.state).toEqual(GameState.IN_PROGRESS);
   });
 });
 
 describe('StartGame', () => {
   it('sets a game to in progress', () => {
     const facade = new GameFacade(new InMemoryGameStore());
-    facade.createGame('game1');
-    facade.joinGame('game1', 'player1');
-    facade.joinGame('game1', 'player2');
-    facade.joinGame('game1', 'player3');
-    facade.joinGame('game1', 'player4');
-    facade.startGame('game1');
-    expect(facade.getGame('game1').state).toEqual(GameState.IN_PROGRESS);
+
+    facade.createGame('game1', 'player1').subscribe();
+    facade.joinGame('game1', 'player1').subscribe();
+    facade.joinGame('game1', 'player2').subscribe();
+    facade.joinGame('game1', 'player3').subscribe();
+    facade.joinGame('game1', 'player4').subscribe();
+    facade.startGame('game1').subscribe();
+
+    const game1 = new BehaviorSubject(null);
+    facade.getGame('game1').subscribe(game1);
+    expect(game1.value.state).toEqual(GameState.IN_PROGRESS);
   });
 });
 
@@ -53,10 +74,12 @@ describe('Investigate', () => {
     facade.forceGameState(makeGame(
         '', 1, {'p0': 'CSRRR', 'p1': 'RRRRR', 'p2': 'SSSRR', 'p3': 'RRRRR'},
         ''));
-    facade.setInvestigator('', 'p0');
-    facade.investigate('', 'p0', 'p1', 1);
+    facade.setInvestigator('', 'p0').subscribe();
+    facade.investigate('', 'p0', 'p1', 1).subscribe();
 
-    const game = facade.getGame('');
+    const gameSubject = new BehaviorSubject(null);
+    facade.getGame('').subscribe(gameSubject);
+    const game = gameSubject.value;
 
     // We expect to see the FUTILE_INVESTIGATION in our visible cards.
     expect(game.visibleCards).toEqual([Card.FUTILE_INVESTIGATION]);
@@ -79,10 +102,12 @@ describe('Investigate', () => {
     facade.forceGameState(makeGame(
         '', 1, {'p0': 'CRRRR', 'p1': 'RRRRR', 'p2': 'SSSSR', 'p3': 'RRRRR'},
         ''));
-    facade.setInvestigator('', 'p0');
-    facade.investigate('', 'p0', 'p2', 1);
+    facade.setInvestigator('', 'p0').subscribe();
+    facade.investigate('', 'p0', 'p2', 1).subscribe();
 
-    const game = facade.getGame('');
+    const gameSubject = new BehaviorSubject(null);
+    facade.getGame('').subscribe(gameSubject);
+    const game = gameSubject.value;
 
     // The card is in the visible cards now.
     expect(game.visibleCards).toEqual([Card.ELDER_SIGN]);
@@ -96,9 +121,6 @@ describe('Investigate', () => {
     // The player is now the current investigator.
     expect(game.currentInvestigatorId).toEqual('p2');
 
-    // The number of lights is what we expect.
-    expect(game.visibleElderSigns).toEqual(1);
-
     // The game is in-progress still.
     expect(game.state).toBe(GameState.IN_PROGRESS);
   });
@@ -108,10 +130,12 @@ describe('Investigate', () => {
     facade.forceGameState(makeGame(
         '', 1, {'p0': 'CRRRR', 'p1': 'RRRRR', 'p2': 'SSSSR', 'p3': 'RRRRR'},
         ''));
-    facade.setInvestigator('', 'p1');
-    facade.investigate('', 'p1', 'p0', 1);
+    facade.setInvestigator('', 'p1').subscribe();
+    facade.investigate('', 'p1', 'p0', 1).subscribe();
 
-    const game = facade.getGame('');
+    const gameSubject = new BehaviorSubject(null);
+    facade.getGame('').subscribe(gameSubject);
+    const game = gameSubject.value;
 
     // The card is in the visible cards now.
     expect(game.visibleCards).toEqual([Card.CTHULHU]);
@@ -125,9 +149,6 @@ describe('Investigate', () => {
     // The player is now the current investigator.
     expect(game.currentInvestigatorId).toEqual('p0');
 
-    // The number of lights is what we expect.
-    expect(game.visibleElderSigns).toEqual(0);
-
     // The game is in-progress still.
     expect(game.state).toBe(GameState.CULTISTS_WON);
   });
@@ -137,10 +158,12 @@ describe('Investigate', () => {
     facade.forceGameState(makeGame(
         '', 1, {'p0': 'CRRRR', 'p1': 'RRRRR', 'p2': 'RS', 'p3': 'RRRRR'},
         'SSS'));
-    facade.setInvestigator('', 'p0');
-    facade.investigate('', 'p0', 'p2', 2);
+    facade.setInvestigator('', 'p0').subscribe();
+    facade.investigate('', 'p0', 'p2', 2).subscribe();
 
-    const game = facade.getGame('');
+    const gameSubject = new BehaviorSubject(null);
+    facade.getGame('').subscribe(gameSubject);
+    const game = gameSubject.value;
 
     // The card is in the visible cards now.
     expect(game.visibleCards).toEqual([
@@ -153,9 +176,6 @@ describe('Investigate', () => {
     // The player is now the current investigator.
     expect(game.currentInvestigatorId).toEqual('p2');
 
-    // The number of lights is what we expect.
-    expect(game.visibleElderSigns).toEqual(4);
-
     // The game is in-progress still.
     expect(game.state).toBe(GameState.INVESTIGATORS_WON);
   });
@@ -165,13 +185,15 @@ describe('Investigate', () => {
     facade.forceGameState(makeGame(
         '', 1, {'p0': 'RRRRC', 'p1': 'RRRRR', 'p2': 'SSSSR', 'p3': 'RRRRR'},
         ''));
-    facade.setInvestigator('', 'p0');
-    facade.investigate('', 'p0', 'p1', 1);
-    facade.investigate('', 'p1', 'p2', 1);
-    facade.investigate('', 'p2', 'p3', 1);
-    facade.investigate('', 'p3', 'p0', 1);
+    facade.setInvestigator('', 'p0').subscribe();
+    facade.investigate('', 'p0', 'p1', 1).subscribe();
+    facade.investigate('', 'p1', 'p2', 1).subscribe();
+    facade.investigate('', 'p2', 'p3', 1).subscribe();
+    facade.investigate('', 'p3', 'p0', 1).subscribe();
 
-    const game = facade.getGame('');
+    const gameSubject = new BehaviorSubject(null);
+    facade.getGame('').subscribe(gameSubject);
+    const game = gameSubject.value;
 
     // The card is in the visible cards now.
     expect(game.visibleCards).toEqual([
@@ -188,9 +210,6 @@ describe('Investigate', () => {
     // The player is now the current investigator.
     expect(game.currentInvestigatorId).toEqual('p0');
 
-    // The number of lights is what we expect.
-    expect(game.visibleElderSigns).toEqual(1);
-
     // The game is in-progress still.
     expect(game.state).toEqual(GameState.IN_PROGRESS);
 
@@ -204,12 +223,14 @@ describe('Investigate', () => {
         '', 4, {'p0': 'RC', 'p1': 'RR', 'p2': 'RS', 'p3': 'RR'},
         'SSSRRRRRRRRR'));
     facade.setInvestigator('', 'p0');
-    facade.investigate('', 'p0', 'p1', 1);
-    facade.investigate('', 'p1', 'p2', 1);
-    facade.investigate('', 'p2', 'p3', 1);
-    facade.investigate('', 'p3', 'p0', 1);
+    facade.investigate('', 'p0', 'p1', 1).subscribe();
+    facade.investigate('', 'p1', 'p2', 1).subscribe();
+    facade.investigate('', 'p2', 'p3', 1).subscribe();
+    facade.investigate('', 'p3', 'p0', 1).subscribe();
 
-    const game = facade.getGame('');
+    const gameSubject = new BehaviorSubject(null);
+    facade.getGame('').subscribe(gameSubject);
+    const game = gameSubject.value;
 
     // The game is in-progress still.
     expect(game.state).toEqual(GameState.CULTISTS_WON);
@@ -228,13 +249,15 @@ describe('Investigate', () => {
           'p4@google.com': 'RRRRC',
         },
         ''));
-    facade.setInvestigator('gameThread', 'p1@google.com');
-    facade.investigate('gameThread', 'p1@google.com', 'p3@google.com', 1);
-    facade.investigate('gameThread', 'p3@google.com', 'p1@google.com', 1);
-    facade.investigate('gameThread', 'p1@google.com', 'p3@google.com', 1);
-    facade.investigate('gameThread', 'p3@google.com', 'p1@google.com', 1);
+    facade.setInvestigator('gameThread', 'p1@google.com').subscribe();
+    facade.investigate('gameThread', 'p1@google.com', 'p3@google.com', 1).subscribe();
+    facade.investigate('gameThread', 'p3@google.com', 'p1@google.com', 1).subscribe();
+    facade.investigate('gameThread', 'p1@google.com', 'p3@google.com', 1).subscribe();
+    facade.investigate('gameThread', 'p3@google.com', 'p1@google.com', 1).subscribe();
 
-    const game = facade.getGame('gameThread');
+    const gameSubject = new BehaviorSubject(null);
+    facade.getGame('gameThread').subscribe(gameSubject);
+    const game = gameSubject.value;
 
     // The game is in-progress still.
     expect(game.state).toEqual(GameState.INVESTIGATORS_WON);
@@ -249,7 +272,7 @@ describe('Subscribe', () => {
     const gameStates = [];
 
     const facade = new GameFacade(new InMemoryGameStore());
-    facade.createGame('id');
+    facade.createGame('id', 'player1').subscribe();
     facade.subscribeToGame('id', {
       next: (game) => gameStates.push(game),
       error: (error) => {
@@ -259,11 +282,11 @@ describe('Subscribe', () => {
       }
     });
 
-    facade.joinGame('id', 'p1');
-    facade.joinGame('id', 'p2');
-    facade.joinGame('id', 'p3');
-    facade.joinGame('id', 'p4');
-    facade.startGame('id');
+    facade.joinGame('id', 'p1').subscribe();
+    facade.joinGame('id', 'p2').subscribe();
+    facade.joinGame('id', 'p3').subscribe();
+    facade.joinGame('id', 'p4').subscribe();
+    facade.startGame('id').subscribe();
     facade.forceGameState(makeGame(
         'id', 1, {
           'p1': 'SSRRR',
@@ -272,8 +295,8 @@ describe('Subscribe', () => {
           'p4': 'RRRRC',
         },
         ''));
-    facade.setInvestigator('id', 'p1');
-    facade.investigate('id', 'p1', 'p4', 5);
+    facade.setInvestigator('id', 'p1').subscribe();
+    facade.investigate('id', 'p1', 'p4', 5).subscribe();
 
     expect(gameStates.length).toBe(8);
   });

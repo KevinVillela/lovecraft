@@ -38,4 +38,9 @@ is also located on the client.
 To run the application locally, simply cd into the `client` directory and run
 `ng serve`. To deploy it to Firebase hosting, run `ng build --prod` and then
 cd to the base directory and run `firebase deploy`. You may need to download
-the Angular and Firebase CLIs. Tests... don't really run right now :\
+the Angular and Firebase CLIs.
+
+To run the business logic tests, run `karma start my.conf.js` from the root
+directory. This will run all the tests in the `game/` directory. The client
+tests do not work right now, but in theory they could be run with `ng test` from
+the `client` directory.

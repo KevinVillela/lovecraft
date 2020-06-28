@@ -16,7 +16,7 @@ import {AngularFireAuth} from '@angular/fire/auth';
 })
 export class MainMenuComponent implements OnInit {
 
-  joinGameStatus: StatusAnd<void> = initial();
+  joinGameStatus: StatusAnd<unknown> = initial();
   createGameStatus: StatusAnd<void> = initial();
   allGames: Record<string, Game> = {};
 

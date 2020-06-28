@@ -23,6 +23,7 @@ export class InMemoryGameStore implements GameStore {
 
   addPlayerToGame(gameId: string, player: Player) {
     this.games[gameId].playerList.push(player);
+    return of(this.games[gameId]);
   }
 
   subscribeToGame(gameId: string, observer: Observer<Game>) {

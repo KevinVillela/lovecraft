@@ -20,7 +20,7 @@ export interface GameStore {
 
   allGames(): Observable<Record<string, Game>>;
 
-  addPlayerToGame(gameId: GameId, player: Player): Observable<void>;
+  addPlayerToGame(gameId: GameId, player: Player): Observable<unknown>;
 
   subscribeToGame(gameId: GameId, observer: Observer<Game>);
 
