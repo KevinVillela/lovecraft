@@ -32,3 +32,10 @@ As the Facade was originally intended (to live on the backend), the GameService
 could be a series of RPC calls to the server. However, in the current 
 implementation, GameService simply proxies calls through to the Facade, which
 is also located on the client.
+
+# For Developers
+
+To run the application locally, simply cd into the `client` directory and run
+`ng serve`. To deploy it to Firebase hosting, run `ng build --prod` and then
+cd to the base directory and run `firebase deploy`. You may need to download
+the Angular and Firebase CLIs. Tests... don't really run right now :\
