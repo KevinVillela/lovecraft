@@ -6,13 +6,13 @@
       <div class="card role" *ngIf="username === player.player.id"
            [matTooltip]="tooltipForRole(player.player.role)">
       <img [src]="imageForRole(player.player.role)">
-    </div>
+S    </div>
       {{player.player.id}}
     </span>
     <div class="cards">
       <div *ngFor="let card of player.player.hand; trackBy: trackByIndex; index as i" class="card"
            [@simpleFadeAnimation]="'in'"
-           [matTooltip]="tooltipForCard(card)"
+           [matTooltip]="tooltipForCard(card, player.player)"
            (click)=" investigate(player.player, i + 1)
       ">
         <img [src]="imageForCard(player.player, card)">

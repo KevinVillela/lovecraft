@@ -1,6 +1,6 @@
 import {Injectable} from '@angular/core';
 import {Card, Game, GameId, GameState, GameStore, Player} from '../../../../game/models/models';
-import {map, take} from 'rxjs/operators';
+import {map} from 'rxjs/operators';
 import {AngularFirestore, AngularFirestoreCollection} from '@angular/fire/firestore';
 import {BehaviorSubject, Observer} from 'rxjs';
 import * as firebase from 'firebase';
@@ -55,14 +55,6 @@ export class FirestoreGameStore implements GameStore {
       }
       return gamesMap;
     })).subscribe(this.gamesSync);
-  }
-
-  addPlayerToGame(gameId: string, player: Player) {
-    return this.gameForId(gameId).pipe(take(1), map(value => {
-      const game = {...this.gamesSync.value[gameId]};
-      game.playerList = game.playerList.concat(player);
-      return this.setGameForId(gameId, game);
-    }));
   }
 
   allGames() {

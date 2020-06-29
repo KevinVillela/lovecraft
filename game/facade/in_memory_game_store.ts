@@ -1,4 +1,4 @@
-import {Game, GameId, GameStore, Player} from '../models/models';
+import {Game, GameId, GameStore} from '../models/models';
 import {BehaviorSubject, Observer, of} from 'rxjs';
 import {distinctUntilChanged} from 'rxjs/operators';
 
@@ -19,11 +19,6 @@ export class InMemoryGameStore implements GameStore {
 
   setGameForId(gameId: string, game: Game) {
     this.games[gameId] = game;
-  }
-
-  addPlayerToGame(gameId: string, player: Player) {
-    this.games[gameId].playerList.push(player);
-    return of(this.games[gameId]);
   }
 
   subscribeToGame(gameId: string, observer: Observer<Game>) {

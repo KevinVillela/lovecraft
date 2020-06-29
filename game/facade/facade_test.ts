@@ -56,7 +56,6 @@ describe('StartGame', () => {
     const facade = new GameFacade(new InMemoryGameStore());
 
     facade.createGame('game1', 'player1').subscribe();
-    facade.joinGame('game1', 'player1').subscribe();
     facade.joinGame('game1', 'player2').subscribe();
     facade.joinGame('game1', 'player3').subscribe();
     facade.joinGame('game1', 'player4').subscribe();

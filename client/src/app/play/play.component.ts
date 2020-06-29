@@ -92,7 +92,7 @@ export class PlayComponent implements OnInit {
       case Role.CULTIST:
         return 'You are a filthy cultist.';
       case Role.INVESTIGATOR:
-        return 'You are a boring investigator.'
+        return 'You are a boring detective.'
     }
   }
 
@@ -107,7 +107,10 @@ export class PlayComponent implements OnInit {
     }
   }
 
-  tooltipForCard(card: Card) {
+  tooltipForCard(card: Card, player?: Player) {
+    if (player && player.id !== this.username) {
+      return 'Unknown';
+    }
     switch (card) {
       case Card.FUTILE_INVESTIGATION:
         return 'A rock.';

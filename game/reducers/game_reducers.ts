@@ -3,6 +3,7 @@ import {Card, Game, GameId, GameState, GameStore, getPlayerOrDie, Player, Role} 
 
 import {dealCardsToPlayers, shuffle} from './utilities';
 import {map, take} from 'rxjs/operators';
+import {of} from 'rxjs';
 
 /**
  * Handles a new game action.
@@ -23,13 +24,16 @@ export function onNewGame(store: GameStore, action: NewGame) {
  * Handles a new player joining the game.
  */
 export function onJoinGame(store: GameStore, action: JoinGame) {
+  return store.gameForId(action.gameId).pipe(take(1), map(game => {
   const player = {
     id: action.playerId,
     role: Role.NOT_SET,
     hand: [],
   };
-
-  return store.addPlayerToGame(action.gameId, player);
+  game.playerList = game.playerList.concat(player);
+   store.setGameForId(action.gameId, game);
+   return of();
+  }));
 }
 
 /**
@@ -38,7 +42,7 @@ export function onJoinGame(store: GameStore, action: JoinGame) {
 export function onStartGame(store: GameStore, action: StartGame) {
   return store.gameForId(action.gameId).pipe(take(1), map(game => {
     return startGame(store, game, action.gameId);
-  }))
+  }));
 }
 
 /**
