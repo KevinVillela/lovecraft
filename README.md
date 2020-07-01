@@ -44,3 +44,7 @@ To run the business logic tests, run `karma start my.conf.js` from the root
 directory. This will run all the tests in the `game/` directory. The client
 tests do not work right now, but in theory they could be run with `ng test` from
 the `client` directory.
+
+## Open bugs
+- Does not look good on small screens (those that don't have much horizontal space)
+- Sometimes people get kicked out when joining a game and must leave/reenter the game.

@@ -57,4 +57,8 @@ export class GameService {
   investigate(gameId: GameId, target: Player, cardIndex: number) {
     return this.gameFacade.investigate(gameId, this.username, target.id, cardIndex).pipe(take(1), wrap);
   }
+
+  restartGame(gameId: GameId) {
+    return this.gameFacade.restartGame(gameId);
+  }
 }

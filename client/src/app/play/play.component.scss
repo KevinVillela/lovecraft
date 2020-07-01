@@ -67,8 +67,18 @@
   }
 }
 
+.end-container {
+  display: flex;
+  flex-direction: column;
+  position: absolute;
+  align-items: center;
+
+  button {
+    margin-top: 50px;
+  }
+}
+
 .ending {
   font-size: 100px;
   color: white;
-  position: absolute;
 }

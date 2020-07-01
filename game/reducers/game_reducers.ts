@@ -1,4 +1,4 @@
-import {ForceGameState, JoinGame, NewGame, SetInvestigator, StartGame} from '../actions/actions';
+import {ForceGameState, JoinGame, NewGame, RestartGame, SetInvestigator, StartGame} from '../actions/actions';
 import {Card, Game, GameId, GameState, GameStore, getPlayerOrDie, Player, Role} from '../models/models';
 
 import {dealCardsToPlayers, shuffle} from './utilities';
@@ -25,14 +25,14 @@ export function onNewGame(store: GameStore, action: NewGame) {
  */
 export function onJoinGame(store: GameStore, action: JoinGame) {
   return store.gameForId(action.gameId).pipe(take(1), map(game => {
-  const player = {
-    id: action.playerId,
-    role: Role.NOT_SET,
-    hand: [],
-  };
-  game.playerList = game.playerList.concat(player);
-   store.setGameForId(action.gameId, game);
-   return of();
+    const player = {
+      id: action.playerId,
+      role: Role.NOT_SET,
+      hand: [],
+    };
+    game.playerList = game.playerList.concat(player);
+    store.setGameForId(action.gameId, game);
+    return of();
   }));
 }
 
@@ -42,6 +42,15 @@ export function onJoinGame(store: GameStore, action: JoinGame) {
 export function onStartGame(store: GameStore, action: StartGame) {
   return store.gameForId(action.gameId).pipe(take(1), map(game => {
     return startGame(store, game, action.gameId);
+  }));
+}
+
+/**
+ * Handles a restart new game action.
+ */
+export function onRestartGame(store: GameStore, action: RestartGame) {
+  return store.gameForId(action.gameId).pipe(take(1), map(game => {
+    return restartGame(store, game, action.gameId);
   }));
 }
 
@@ -81,6 +90,19 @@ export function startGame(store: GameStore, game: Game, gameId: GameId) {
   // Start the game.
   game.state = GameState.IN_PROGRESS;
   return store.setGameForId(gameId, game);
+}
+
+/**
+ * Handles the state transition to the game restarting.
+ */
+export function restartGame(store: GameStore, game: Game, gameId: GameId) {
+  // Reset the game to zero.
+  game.visibleCards = [];
+  game.currentInvestigatorId = undefined;
+  game.round = 1;
+
+  // Start the game.
+  return startGame(store, game, gameId);
 }
 
 /**

@@ -20,10 +20,13 @@ export function shuffle<T>(array: Array<T>) {
 
 /**
  * Shuffles and deals the cards evenly to all players, starting with the first
- * player.
+ * player. Clears the players hands before dealing.
  */
 export function dealCardsToPlayers(players: Player[], cards: Card[]) {
   shuffle(cards);
+  for (const player of players) {
+    player.hand = [];
+  }
 
   while (cards.length) {
     for (const player of players) {

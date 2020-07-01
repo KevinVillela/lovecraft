@@ -1,7 +1,7 @@
 import {Component, OnInit} from '@angular/core';
 import {BehaviorSubject, Observable, ReplaySubject} from 'rxjs';
 import {ActivatedRoute, Router} from '@angular/router';
-import {Card, Game, GameId, Player, Role} from '../../../../game/models/models';
+import {Card, Game, GameId, GameState, Player, Role} from '../../../../game/models/models';
 import {GameService} from '../game/game.service';
 import {initial, isError, loading, StatusAnd} from '../common/status_and';
 import {MatSnackBar} from '@angular/material/snack-bar';
@@ -82,21 +82,32 @@ export class PlayComponent implements OnInit {
       if (isError(val)) {
         this.errorService.displayError('Error investigating', val.error);
       }
-    })
+    });
   }
 
-  tooltipForRole(role: Role) {
+  /** Returns true if we can show the card to the current player. */
+  shouldShowCard(player?: Player) {
+    return player?.id === this.username || this.game.value.state !== GameState.IN_PROGRESS;
+  }
+
+  tooltipForRole(role: Role, player: Player) {
+    if (!this.shouldShowCard(player)) {
+      return 'The winning team. Maybe?'
+    }
     switch (role) {
       case Role.NOT_SET:
         return '?';
       case Role.CULTIST:
-        return 'You are a filthy cultist.';
+        return 'A filthy cultist.';
       case Role.INVESTIGATOR:
-        return 'You are a boring detective.'
+        return 'A boring detective.'
     }
   }
 
-  imageForRole(role: Role) {
+  imageForRole(role: Role, player: Player) {
+    if (!this.shouldShowCard(player)) {
+      return 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/46/Question_mark_%28black%29.svg/1200px-Question_mark_%28black%29.svg.png';
+    }
     switch (role) {
       case Role.NOT_SET:
         return '';
@@ -108,7 +119,7 @@ export class PlayComponent implements OnInit {
   }
 
   tooltipForCard(card: Card, player?: Player) {
-    if (player && player.id !== this.username) {
+    if (!this.shouldShowCard(player)) {
       return 'Unknown';
     }
     switch (card) {
@@ -124,7 +135,7 @@ export class PlayComponent implements OnInit {
   }
 
   imageForCard(player: Player, card: Card) {
-    if (player.id !== this.username) {
+    if (!this.shouldShowCard(player)) {
       return 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/46/Question_mark_%28black%29.svg/1200px-Question_mark_%28black%29.svg.png';
     }
     return this.imageForVisibleCard(card);
@@ -145,6 +156,14 @@ export class PlayComponent implements OnInit {
 
   trackByIndex(index: number) {
     return index;
+  }
+
+  restart() {
+    this.gameService.restartGame(this.game.value.id).pipe(takeUntil(this.destroyed)).subscribe((val) => {
+      if (isError(val)) {
+        this.errorService.displayError('Error restarting', val.error);
+      }
+    })
   }
 
   ngOnDestroy() {

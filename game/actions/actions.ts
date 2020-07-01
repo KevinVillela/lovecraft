@@ -4,6 +4,7 @@ export enum ActionType {
   NEW_GAME = '[Game] New Game',
   JOIN_GAME = '[Game] Join Game',
   START_GAME = '[Game] Start Game',
+  RESTART_GAME = '[Game] Restart Game',
   SET_INVESTIGATOR = '[Game] Set Investigator',
   FORCE_GAME_STATE = '[Game] Force State',
   PLAY_CARD = '[Card] Play Card',
@@ -27,6 +28,12 @@ export class StartGame implements Action {
   type = ActionType.START_GAME;
   constructor(public gameId: GameId) {}
 }
+
+export class RestartGame implements Action {
+  type = ActionType.RESTART_GAME;
+  constructor(public gameId: GameId) {}
+}
+
 
 export class PlayCard implements Action {
   type = ActionType.PLAY_CARD;

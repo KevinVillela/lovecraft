@@ -1,10 +1,10 @@
 import {Observable, Observer} from 'rxjs';
 import {map, switchMap, take, tap} from 'rxjs/operators';
 
-import {ForceGameState, JoinGame, NewGame, PlayCard, SetInvestigator, StartGame} from '../actions/actions';
+import {ForceGameState, JoinGame, NewGame, PlayCard, RestartGame, SetInvestigator, StartGame} from '../actions/actions';
 import {Game, GameId, GameState, GameStore, getPlayerOrDie, PlayerId} from '../models/models';
 import {onPlayCard} from '../reducers/card_reducers';
-import {onForceGameState, onJoinGame, onNewGame, onSetInvestigator, onStartGame} from '../reducers/game_reducers';
+import {onForceGameState, onJoinGame, onNewGame, onRestartGame, onSetInvestigator, onStartGame} from '../reducers/game_reducers';
 
 /**
  * A facade object that hides the gory details of the underlying representation
@@ -95,6 +95,18 @@ export class GameFacade {
 
       // Play the card. This also sets the current investigator.
       return onPlayCard(this.store, new PlayCard(gameId, targetPlayerId, cardNumber));
+    }), tap(() => this.notify(gameId)));
+  }
+
+
+
+  restartGame(gameId: GameId) {
+    return this.getGame(gameId).pipe(take(1), switchMap(game => {
+      if (game.state !== GameState.CULTISTS_WON && game.state !== GameState.INVESTIGATORS_WON) {
+        throw new Error(`${gameId} is still in progress.`);
+      }
+
+      return onRestartGame(this.store, new RestartGame(gameId));
     }), tap(() => this.notify(gameId)));
   }
 

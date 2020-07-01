@@ -51,19 +51,24 @@ describe('StartGame', () => {
   });
 });
 
-describe('StartGame', () => {
-  it('sets a game to in progress', () => {
+describe('RestartGame', () => {
+  it('resets a game completely', () => {
     const facade = new GameFacade(new InMemoryGameStore());
 
     facade.createGame('game1', 'player1').subscribe();
     facade.joinGame('game1', 'player2').subscribe();
-    facade.joinGame('game1', 'player3').subscribe();
-    facade.joinGame('game1', 'player4').subscribe();
     facade.startGame('game1').subscribe();
+
+    facade.restartGame('game1').subscribe();
 
     const game1 = new BehaviorSubject(null);
     facade.getGame('game1').subscribe(game1);
-    expect(game1.value.state).toEqual(GameState.IN_PROGRESS);
+    expect(game1.value).toEqual(jasmine.objectContaining({
+      id: 'game1',
+      round: 1,
+      visibleCards: [],
+      state: GameState.IN_PROGRESS,
+    }));
   });
 });
 
