@@ -1,9 +1,10 @@
 import {Injectable} from '@angular/core';
-import {Card, Game, GameId, GameState, GameStore, Player} from '../../../../game/models/models';
+import {Card, Game, GameId, GameState, Player} from '../../../../game/models/models';
 import {map} from 'rxjs/operators';
 import {AngularFirestore, AngularFirestoreCollection} from '@angular/fire/firestore';
 import {BehaviorSubject, Observer} from 'rxjs';
 import * as firebase from 'firebase';
+import {GameStore, GameReducer} from '../../../../game/facade/game_store';
 
 /** The interface for the data store in FireStore. */
 interface FirestoreGame {
@@ -61,6 +62,15 @@ export class FirestoreGameStore implements GameStore {
     return this.gamesSync;
   }
 
+  applyTo(gameId: GameId, reducer: GameReducer) {
+    // I feel like there's something not right here, but I can't test it to
+    // see what's funky.
+    return this.gameForId(gameId).pipe(map(game => {
+      const newGame = reducer(game);
+      this.setGameForId(gameId, newGame);
+    })).toPromise();
+  }
+
   gameForId(gameId: string) {
     return this.gamesSync.pipe(map(value => {
       if (value[gameId]) {
@@ -83,7 +93,7 @@ export class FirestoreGameStore implements GameStore {
       // Firestore doesn't like undefined...
       delete firestoreGame.currentInvestigatorId;
     }
-    this.games.doc<FirestoreGame>(gameId).set(firestoreGame);
+    return this.games.doc<FirestoreGame>(gameId).set(firestoreGame);
   }
 
   notify(gameId: string): void {

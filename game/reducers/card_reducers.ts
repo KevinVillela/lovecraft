@@ -1,16 +1,35 @@
 import {PlayCard} from '../actions/actions';
-import {Card, Game, GameId, GameState, GameStore, getPlayerOrDie, PlayerId} from '../models/models';
+import {Card, Game, GameState, getPlayerOrDie, PlayerId} from '../models/models';
 
 import {dealCardsToPlayers} from './utilities';
-import {map, take} from 'rxjs/operators';
 
 /**
  * Updates the store given a PlayCard action.
  */
-export function onPlayCard(store: GameStore, action: PlayCard) {
-  return store.gameForId(action.gameId).pipe(take(1), map(game => {
-    return playCard(store, action.gameId, game, action.targetPlayer, action.cardNumber);
-  }));
+export function onPlayCard(game: Game|undefined, action: PlayCard) {
+  if (!game) {
+    throw new Error(`No game ${action.gameId} exists.`);
+  }
+  if (game.state !== GameState.IN_PROGRESS) {
+    throw new Error(`${game.id} is not in progress.`);
+  }
+  const targetPlayer = getPlayerOrDie(game, action.targetPlayer);
+  if (action.cardNumber < 1) {
+    throw new Error(`Card number must be >= 1.`);
+  }
+  if (action.cardNumber > targetPlayer.hand.length) {
+    throw new Error(
+        `${action.targetPlayer} only has ${targetPlayer.hand.length} cards`);
+  }
+  if (game.currentInvestigatorId !== action.sourcePlayer) {
+    throw new Error(`${action.sourcePlayer} is not the current investigator.`);
+  }
+  if (action.sourcePlayer === action.targetPlayer) {
+    throw new Error('You cannot investigate yourself.');
+  }
+
+  playCard(game, action.targetPlayer, action.cardNumber);
+  return game;
 }
 
 
@@ -18,7 +37,7 @@ export function onPlayCard(store: GameStore, action: PlayCard) {
  * Plays a card from a target player's hand in the game provided, updating
  * game state appropriately.
  */
-function playCard(store: GameStore, gameId: GameId, game: Game, playerId: PlayerId, cardNumber: number) {
+function playCard(game: Game, playerId: PlayerId, cardNumber: number) {
   // Find the player or die.
   const player = getPlayerOrDie(game, playerId);
 
@@ -52,7 +71,6 @@ function playCard(store: GameStore, gameId: GameId, game: Game, playerId: Player
     default:
       throw new Error(`Invalid card type: ${card}`);
   }
-  return store.setGameForId(gameId, game);
 }
 
 /**
@@ -68,16 +86,21 @@ function handleNoOpCard(game: Game, card: Card) {
  */
 function handleElderSign(game: Game) {
   game.visibleCards.push(Card.ELDER_SIGN);
-  if (elderSignsForGame(game) >= game.playerList.length) {
+
+  let signs = 0;
+  for (let card of game.visibleCards) {
+    if (card === Card.ELDER_SIGN) {
+      signs++;
+    }
+  }
+
+  if (signs >= game.playerList.length) {
     game.state = GameState.INVESTIGATORS_WON;
   } else {
     handlePotentialEndOfRound(game);
   }
 }
 
-function elderSignsForGame(game: Game): number {
-  return game.visibleCards.filter(card => card === Card.ELDER_SIGN).length;
-}
 /**
  * Handles someone playing Cthulhu.
  */

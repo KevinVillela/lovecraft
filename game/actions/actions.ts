@@ -34,12 +34,11 @@ export class RestartGame implements Action {
   constructor(public gameId: GameId) {}
 }
 
-
 export class PlayCard implements Action {
   type = ActionType.PLAY_CARD;
   constructor(
-      public gameId: GameId, public targetPlayer: PlayerId,
-      public cardNumber: number) {}
+      public gameId: GameId, public sourcePlayer: PlayerId,
+      public targetPlayer: PlayerId, public cardNumber: number) {}
 }
 
 export class SetInvestigator implements Action {
