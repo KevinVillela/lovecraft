@@ -1,29 +1,12 @@
 /**
  * A unique ID for a player.
  */
-import {Observable, Observer} from 'rxjs';
-
 export type PlayerId = string;
 
 /**
  * A unique ID for a game.
  */
 export type GameId = string;
-
-/**
- * A DAO for all the games. All operations are synchronous.
- */
-export interface GameStore {
-  gameForId(gameId: GameId): Observable<Game>;
-
-  setGameForId(gameId: GameId, game: Game);
-
-  allGames(): Observable<Record<string, Game>>;
-
-  subscribeToGame(gameId: GameId, observer: Observer<Game>);
-
-  notify(gameId: GameId): void;
-}
 
 /**
  * A single game instance.

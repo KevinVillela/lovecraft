@@ -9,8 +9,8 @@ export function makeGame(
     playerList: [],
     currentInvestigatorId: undefined,
     visibleCards: [],
-    created: new Date(),
     state: GameState.IN_PROGRESS,
+    created: new Date(),
   };
 
   let playerNum = 0;
@@ -33,7 +33,9 @@ export function makeGame(
     game.visibleCards.push(type);
   }
 
-  game.currentInvestigatorId = game.playerList[0].id;
+  if (game.playerList.length) {
+    game.currentInvestigatorId = game.playerList[0].id;
+  }
   return game;
 }
 

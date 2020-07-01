@@ -2,7 +2,7 @@ import {Injectable} from '@angular/core';
 import {GameFacade} from '../../../../game/facade/facade';
 import {Game, GameId, Player} from '../../../../game/models/models';
 import {error, StatusAnd, wrap} from '../common/status_and';
-import {Observable, Observer, of} from 'rxjs';
+import {Observable, Observer, of, from} from 'rxjs';
 import {take} from 'rxjs/operators';
 import {AngularFireAuth} from '@angular/fire/auth';
 
@@ -32,7 +32,7 @@ export class GameService {
    */
   createGame(gameId: GameId): Observable<StatusAnd<void>> {
     try {
-      return this.gameFacade.createGame(gameId, this.username).pipe(wrap);
+      return from(this.gameFacade.createGame(gameId, this.username)).pipe(wrap);
     } catch (e) {
       return of(error(e));
     }
@@ -43,7 +43,7 @@ export class GameService {
   }
 
   joinGame(gameId: GameId) {
-    return this.gameFacade.joinGame(gameId, this.username).pipe(take(1), wrap);
+    return from(this.gameFacade.joinGame(gameId, this.username)).pipe(take(1), wrap);
   }
 
   subscribeToGame(gameId: GameId, observable: Observer<Game>) {
@@ -51,14 +51,14 @@ export class GameService {
   }
 
   startGame(gameId: GameId) {
-    return this.gameFacade.startGame(gameId).pipe(take(1), wrap);
+    return from(this.gameFacade.startGame(gameId)).pipe(take(1), wrap);
   }
 
   investigate(gameId: GameId, target: Player, cardIndex: number) {
-    return this.gameFacade.investigate(gameId, this.username, target.id, cardIndex).pipe(take(1), wrap);
+    return from(this.gameFacade.investigate(gameId, this.username, target.id, cardIndex)).pipe(take(1), wrap);
   }
 
   restartGame(gameId: GameId) {
-    return this.gameFacade.restartGame(gameId);
+    return from(this.gameFacade.restartGame(gameId));
   }
 }

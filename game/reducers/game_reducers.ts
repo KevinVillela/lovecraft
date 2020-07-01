@@ -1,79 +1,106 @@
 import {ForceGameState, JoinGame, NewGame, RestartGame, SetInvestigator, StartGame} from '../actions/actions';
-import {Card, Game, GameId, GameState, GameStore, getPlayerOrDie, Player, Role} from '../models/models';
+import {Card, Game, GameState, getPlayerOrDie, Player, Role} from '../models/models';
 
 import {dealCardsToPlayers, shuffle} from './utilities';
-import {map, take} from 'rxjs/operators';
-import {of} from 'rxjs';
 
 /**
  * Handles a new game action.
  */
-export function onNewGame(store: GameStore, action: NewGame) {
-  store.setGameForId(action.gameId, {
+export function onNewGame(oldGame: Game|undefined, action: NewGame) {
+  if (oldGame) {
+    throw new Error(`Game ${oldGame.id} already exists.`);
+  }
+
+  const game: Game = {
     id: action.gameId,
     round: 1,
-    playerList: [{id: action.playerId, role: Role.NOT_SET, hand: []}],
+    playerList: [],
     currentInvestigatorId: undefined,
     visibleCards: [],
     state: GameState.NOT_STARTED,
-    created: new Date()
-  });
+    created: new Date(),
+  };
+
+  if (action.playerId) {
+    onJoinGame(game, new JoinGame(action.gameId, action.playerId));
+  }
+
+  return game;
 }
 
 /**
  * Handles a new player joining the game.
  */
-export function onJoinGame(store: GameStore, action: JoinGame) {
-  return store.gameForId(action.gameId).pipe(take(1), map(game => {
-    const player = {
-      id: action.playerId,
-      role: Role.NOT_SET,
-      hand: [],
-    };
-    game.playerList = game.playerList.concat(player);
-    store.setGameForId(action.gameId, game);
-    return of();
-  }));
+export function onJoinGame(game: Game|undefined, action: JoinGame) {
+  if (!game) {
+    throw new Error(`No game ${action.gameId} exists.`);
+  }
+  if (game.playerList.some((player) => player.id === action.playerId)) {
+    throw new Error(`${action.playerId} is already in ${game.id}`);
+  }
+  if (game.state !== GameState.NOT_STARTED) {
+    throw new Error(`${game.id} is already in progres.`);
+  }
+
+  const player = {
+    id: action.playerId,
+    role: Role.NOT_SET,
+    hand: [],
+  };
+  game.playerList.push(player);
+  return game;
 }
 
 /**
  * Handles a start new game action.
  */
-export function onStartGame(store: GameStore, action: StartGame) {
-  return store.gameForId(action.gameId).pipe(take(1), map(game => {
-    return startGame(store, game, action.gameId);
-  }));
+export function onStartGame(game: Game|undefined, action: StartGame) {
+  if (!game) {
+    throw new Error(`No game ${action.gameId} exists.`);
+  }
+  if (game.state !== GameState.NOT_STARTED) {
+    throw new Error(`${game.id} has already been started.`);
+  }
+  if (game.playerList.length > 8) {
+    throw new Error('We only support 4-8 players at this time.');
+  }
+
+  startGame(game);
+  return game;
 }
 
 /**
  * Handles a restart new game action.
  */
-export function onRestartGame(store: GameStore, action: RestartGame) {
-  return store.gameForId(action.gameId).pipe(take(1), map(game => {
-    return restartGame(store, game, action.gameId);
-  }));
+export function onRestartGame(game: Game|undefined, action: RestartGame) {
+  restartGame(game);
+  return game;
 }
+
 
 /**
  * Handles a force game state action.
  */
-export function onForceGameState(store: GameStore, action: ForceGameState) {
-  store.setGameForId(action.game.id, action.game);
+export function onForceGameState(game: Game|undefined, action: ForceGameState) {
+  return action.game;
 }
 
 /**
  * Handles a set investigator action.
  */
-export function onSetInvestigator(store: GameStore, action: SetInvestigator) {
-  return store.gameForId(action.gameId).pipe(take(1), map(game => {
-    game.currentInvestigatorId = getPlayerOrDie(game, action.targetPlayer).id;
-  }));
+export function onSetInvestigator(
+    game: Game|undefined, action: SetInvestigator) {
+  if (!game) {
+    throw new Error(`No game ${action.gameId} exists.`);
+  }
+  game.currentInvestigatorId = getPlayerOrDie(game, action.targetPlayer).id;
+  return game;
 }
 
 /**
  * Handles the state transition to the game starting.
  */
-export function startGame(store: GameStore, game: Game, gameId: GameId) {
+function startGame(game: Game) {
   const setup = PLAYER_SETUPS[game.playerList.length];
   if (!setup) {
     throw new Error(`Invalid player count: ${game.playerList.length}`);
@@ -89,20 +116,16 @@ export function startGame(store: GameStore, game: Game, gameId: GameId) {
 
   // Start the game.
   game.state = GameState.IN_PROGRESS;
-  return store.setGameForId(gameId, game);
 }
 
-/**
- * Handles the state transition to the game restarting.
- */
-export function restartGame(store: GameStore, game: Game, gameId: GameId) {
+function restartGame(game: Game) {
   // Reset the game to zero.
   game.visibleCards = [];
   game.currentInvestigatorId = undefined;
   game.round = 1;
 
   // Start the game.
-  return startGame(store, game, gameId);
+  startGame(game);
 }
 
 /**
