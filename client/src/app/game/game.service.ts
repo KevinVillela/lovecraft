@@ -60,6 +60,9 @@ export class GameService {
 
   restartGame(gameId: GameId) {
     return from(this.gameFacade.restartGame(gameId)).pipe(take(1), wrap);
-    ;
+  }
+
+  forceGameState(game: Game): Promise<void> {
+    return this.gameFacade.forceGameState(game);
   }
 }

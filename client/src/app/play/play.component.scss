@@ -5,6 +5,19 @@
   align-items: center;
 }
 
+.game {
+  display: flex;
+  flex-direction: column;
+
+  .status {
+    color: white;
+    font-size: 72px;
+    text-align: center;
+    height: 60px;
+    margin-top: 28px;
+  }
+}
+
 .circle {
   width: 1000px;
   height: 600px;
@@ -14,14 +27,7 @@
 .player {
   position: absolute;
   flex-direction: column;
-  transition: transform 0.2s ease;
   display: flex;
-  overflow: hidden;
-
-  &:hover {
-    //transform: scale(1.5);
-    cursor: pointer;
-  }
 
   .player-name {
     display: flex;
@@ -41,11 +47,16 @@
 }
 
 .card {
+
+  &:hover {
+    transform: scale(2);
+    transition: transform 0.2s ease;
+    cursor: pointer;
+  }
+
   img {
     height: 48px;
     width: 48px;
-    background: white;
-    border: dimgray 1px solid;
   }
 }
 

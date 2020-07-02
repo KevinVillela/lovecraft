@@ -5,9 +5,10 @@ import {GameFacade} from '../../../../game/facade/facade';
 import {AngularFireAuth} from '@angular/fire/auth';
 import {BehaviorSubject} from 'rxjs';
 import {RouterTestingModule} from '@angular/router/testing';
+import {NoopAnimationsModule} from '@angular/platform-browser/animations';
 
 class FakeAngularFireAuth {
-  user = new BehaviorSubject('villela');
+  user = new BehaviorSubject({displayName: 'villela@google.com'});
 }
 
 /**
@@ -18,7 +19,8 @@ class FakeAngularFireAuth {
   declarations: [],
   imports: [
     CommonModule,
-    RouterTestingModule
+    RouterTestingModule,
+    NoopAnimationsModule
   ],
   providers: [{provide: GameFacade, useFactory: () => new GameFacade(new InMemoryGameStore())},
     {provide: AngularFireAuth, useClass: FakeAngularFireAuth}

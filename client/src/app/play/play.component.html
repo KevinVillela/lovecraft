@@ -1,3 +1,6 @@
+<div class="game">
+<div class="status">Round {{game.value?.round}}</div>
+
 <div class="circle" id="circle">
   <div *ngFor="let player of (players | async); trackBy: trackByIndex" class="player"
        [style.top.px]="player.top"
@@ -10,7 +13,8 @@
       {{player.player.id}}
     </span>
     <div class="cards">
-      <div *ngFor="let card of player.player.hand; trackBy: trackByIndex; index as i" class="card"
+      <div *ngFor="let card of player.player.hand; trackBy: trackByIndex; index as i"
+           class="play card"
            [@simpleFadeAnimation]="'in'"
            [matTooltip]="tooltipForCard(card, player.player)"
            (click)=" investigate(player.player, i + 1)
@@ -23,11 +27,12 @@
            matTooltip="The lead investigator."
            [@simpleFadeAnimation]="'in'">
         <img
-            src="https://cdn4.iconfinder.com/data/icons/proglyphs-miscellaneous/512/Flashlight-512.png">
+            src="assets/flashlight.png">
       </div>
     </div>
   </div>
 </div>
+  </div>
 
 <div class="visible-cards">
   <div *ngFor="let cardRound of (cardRounds | async); trackBy: trackByIndex;"
@@ -42,7 +47,7 @@
 </div>
 
 <div class="end-container"
-    *ngIf="game.value?.state === 'Cultists Win' || game.value?.state === 'Investigators Win'">
+     *ngIf="game.value?.state === 'Cultists Win' || game.value?.state === 'Investigators Win'">
   <ng-container *ngIf="game.value?.state === 'Cultists Win'">
     <div class="animated intensifies ending">Cultists Win!!</div>
   </ng-container>

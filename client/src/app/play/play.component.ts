@@ -1,6 +1,6 @@
 import {Component, OnInit} from '@angular/core';
 import {BehaviorSubject, Observable, ReplaySubject} from 'rxjs';
-import {ActivatedRoute, Router} from '@angular/router';
+import {ActivatedRoute} from '@angular/router';
 import {Card, Game, GameId, GameState, Player, Role} from '../../../../game/models/models';
 import {GameService} from '../game/game.service';
 import {initial, isError, loading, StatusAnd} from '../common/status_and';
@@ -72,7 +72,7 @@ export class PlayComponent implements OnInit {
   ngOnInit(): void {
   }
 
-  investigate(target: Player, cardIndex: number) {
+  investigate(target: Player, cardIndex: number): void {
     this.investigateStatus = loading();
     this.gameService.investigate(this.gameId, target, cardIndex).pipe(takeUntil(this.destroyed)).subscribe((val) => {
       this.investigateStatus = val;
@@ -83,13 +83,13 @@ export class PlayComponent implements OnInit {
   }
 
   /** Returns true if we can show the card to the current player. */
-  shouldShowCard(player?: Player) {
+  shouldShowCard(player?: Player): boolean {
     return player?.id === this.username || this.game.value.state !== GameState.IN_PROGRESS;
   }
 
-  tooltipForRole(role: Role, player: Player) {
+  tooltipForRole(role: Role, player: Player): string {
     if (!this.shouldShowCard(player)) {
-      return 'The winning team. Maybe?'
+      return 'The winning team. Maybe?';
     }
     switch (role) {
       case Role.NOT_SET:
@@ -97,29 +97,39 @@ export class PlayComponent implements OnInit {
       case Role.CULTIST:
         return 'A filthy cultist.';
       case Role.INVESTIGATOR:
-        return 'A boring detective.'
+        return 'A boring detective.';
     }
   }
 
-  imageForRole(role: Role, player: Player) {
+  imageForRole(role: Role, player: Player): CardImage {
     if (!this.shouldShowCard(player)) {
-      return 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/46/Question_mark_%28black%29.svg/1200px-Question_mark_%28black%29.svg.png';
+      return CardImage.BACK;
     }
     switch (role) {
       case Role.NOT_SET:
-        return '';
+        return CardImage.BACK;
       case Role.CULTIST:
-        return 'https://i.pinimg.com/originals/73/12/5a/73125a16d69a5d4c2af41036ba160a0a.png';
+        return CardImage.CULTIST;
       case Role.INVESTIGATOR:
-        return 'https://w0.pngwave.com/png/592/648/due-diligence-computer-icons-private-investigator-inspector-png-clip-art.png'
+        return CardImage.INVESTIGATOR;
     }
   }
 
-  tooltipForCard(card: Card, player?: Player) {
+  tooltipForCard(card: Card, player?: Player): string {
     if (!this.shouldShowCard(player)) {
       return 'Unknown';
     }
     switch (card) {
+      case Card.PRIVATE_EYE:
+        return 'Secretly reveal your role to the investigator.';
+      case Card.EVIL_PRESENCE:
+        return 'Return all your unrevealed cards to the reshuffle pile.';
+      case Card.MIRAGE:
+        return 'Return a previously discovered elder sign to the reshuffle pile.';
+      case Card.PARANOIA:
+        return 'Control the flashlight for the rest of the round.';
+      case Card.PRESCIENT_VISION:
+        return 'Reveal a card, flip it back over.';
       case Card.FUTILE_INVESTIGATION:
         return 'A rock.';
       case Card.ELDER_SIGN:
@@ -128,42 +138,56 @@ export class PlayComponent implements OnInit {
         return 'Oh no, a Cthulhu!';
       case Card.INSANITYS_GRASP:
         return 'Insanity\'s grasp - no talking!';
+      default:
+        return ((c: never) => CardImage.BACK)(card);
     }
   }
 
-  imageForCard(player: Player, card: Card) {
+  imageForCard(player: Player, card: Card): string {
     if (!this.shouldShowCard(player)) {
-      return 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/46/Question_mark_%28black%29.svg/1200px-Question_mark_%28black%29.svg.png';
+      return CardImage.BACK;
     }
     return this.imageForVisibleCard(card);
   }
 
-  imageForVisibleCard(card: Card) {
+  imageForVisibleCard(card: Card): string {
     switch (card) {
+      case Card.PRIVATE_EYE:
+        return CardImage.PRIVATE_EYE;
+      case Card.EVIL_PRESENCE:
+        return CardImage.EVIL_PRESENCE;
+      case Card.MIRAGE:
+        return CardImage.MIRAGE;
+      case Card.PARANOIA:
+        return CardImage.PARANOIA;
+      case Card.PRESCIENT_VISION:
+        return CardImage.PRESCIENT_VISION;
       case Card.FUTILE_INVESTIGATION:
-        return 'https://i.redd.it/brxxveprs2e01.png';
+        return CardImage.ROCK;
       case Card.ELDER_SIGN:
-        return 'https://images-na.ssl-images-amazon.com/images/I/61kdUERFxsL._AC_SL1500_.jpg';
+        return CardImage.ELDER_SIGN;
       case Card.CTHULHU:
-        return 'https://image.flaticon.com/icons/svg/1137/1137046.svg';
+        return CardImage.CTHULHU;
       case Card.INSANITYS_GRASP:
-        return 'https://www.theglobeandmail.com/resizer/oIPwhVmLkTDNZPvo0V3VrL0dHzo=/4820x0/filters:quality(80)/arc-anglerfish-tgam-prod-tgam.s3.amazonaws.com/public/LDMBR7HMIZBY5ID2IRPIPETAYA.jpg';
+        return CardImage.INSANITYS_GRASP;
+      default:
+        return ((c: never) => CardImage.BACK)(card);
     }
   }
 
-  trackByIndex(index: number) {
+  trackByIndex(index: number): number {
     return index;
   }
 
-  restart() {
+  restart(): void {
     this.gameService.restartGame(this.game.value.id).pipe(takeUntil(this.destroyed)).subscribe((val) => {
       if (isError(val)) {
         this.errorService.displayError('Error restarting', val.error);
       }
-    })
+    });
   }
 
-  ngOnDestroy() {
+  ngOnDestroy(): void {
     // Unsubscribes all pending subscriptions.
     this.destroyed.next();
     this.destroyed.complete();
@@ -190,7 +214,22 @@ function ellipse(players: Player[], rx: number, ry: number, so: number): CircleP
       player,
       left: rx + rx * (Math.sin((360 / n / 180) * (i + so) * Math.PI)),
       top: ry + -ry * Math.cos((360 / n / 180) * (i + so) * Math.PI)
-    }
+    };
   });
 }
 
+export enum CardImage {
+  BACK = 'assets/back.png',
+  CTHULHU = 'assets/cthulhu.png',
+  CULTIST = 'assets/cultist.png',
+  ELDER_SIGN = 'assets/elder_sign.png',
+  EVIL_PRESENCE = 'assets/evil_presence.png',
+  FLASHLIGHT = 'assets/flashlight.png',
+  INSANITYS_GRASP = 'assets/insanitys_grash.png',
+  INVESTIGATOR = 'assets/investigator.png',
+  MIRAGE = 'assets/mirage.png',
+  PARANOIA = 'assets/paranoia.png',
+  PRESCIENT_VISION = 'assets/prescient_vision.png',
+  PRIVATE_EYE = 'assets/private_eye.png',
+  ROCK = 'assets/rock.png'
+}

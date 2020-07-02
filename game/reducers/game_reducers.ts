@@ -6,7 +6,7 @@ import {dealCardsToPlayers, shuffle} from './utilities';
 /**
  * Handles a new game action.
  */
-export function onNewGame(oldGame: Game|undefined, action: NewGame) {
+export function onNewGame(oldGame: Game | undefined, action: NewGame) {
   if (oldGame) {
     throw new Error(`Game ${oldGame.id} already exists.`);
   }
@@ -37,7 +37,7 @@ export function onNewGame(oldGame: Game|undefined, action: NewGame) {
 /**
  * Handles a new player joining the game.
  */
-export function onJoinGame(game: Game|undefined, action: JoinGame) {
+export function onJoinGame(game: Game | undefined, action: JoinGame) {
   if (!game) {
     throw new Error(`No game ${action.gameId} exists.`);
   }
@@ -65,7 +65,7 @@ export function onJoinGame(game: Game|undefined, action: JoinGame) {
 /**
  * Handles a start new game action.
  */
-export function onStartGame(game: Game|undefined, action: StartGame) {
+export function onStartGame(game: Game | undefined, action: StartGame) {
   if (!game) {
     throw new Error(`No game ${action.gameId} exists.`);
   }
@@ -87,16 +87,15 @@ export function onStartGame(game: Game|undefined, action: StartGame) {
 /**
  * Handles a restart new game action.
  */
-export function onRestartGame(game: Game|undefined, action: RestartGame) {
-  restartGame(game);
-  return game;
+export function onRestartGame(game: Game | undefined, action: RestartGame) {
+  return restartGame(game);
 }
 
 
 /**
  * Handles a force game state action.
  */
-export function onForceGameState(game: Game|undefined, action: ForceGameState) {
+export function onForceGameState(game: Game | undefined, action: ForceGameState) {
   return action.game;
 }
 
@@ -104,7 +103,7 @@ export function onForceGameState(game: Game|undefined, action: ForceGameState) {
  * Handles a set investigator action.
  */
 export function onSetInvestigator(
-    game: Game|undefined, action: SetInvestigator) {
+    game: Game | undefined, action: SetInvestigator) {
   if (!game) {
     throw new Error(`No game ${action.gameId} exists.`);
   }
@@ -160,6 +159,7 @@ function restartGame(game: Game) {
 
   // Start the game.
   startGame(newGame);
+  return newGame;
 }
 
 /**
@@ -254,4 +254,4 @@ const SUPPORTED_SPECIAL_CARDS: Card[] = [
 const DEFAULT_OPTIONS: GameOptions = {
   specialCardCount: 0,
   cthulhuCount: 1,
-}
+};
