@@ -1,5 +1,5 @@
 import {ForceGameState, JoinGame, NewGame, RestartGame, SetInvestigator, StartGame} from '../actions/actions';
-import {Card, Game, GameState, getPlayerOrDie, Player, Role} from '../models/models';
+import {Card, Game, GameOptions, GameState, getPlayerOrDie, Player, Role} from '../models/models';
 
 import {dealCardsToPlayers, shuffle} from './utilities';
 
@@ -19,11 +19,17 @@ export function onNewGame(oldGame: Game|undefined, action: NewGame) {
     visibleCards: [],
     state: GameState.NOT_STARTED,
     created: new Date(),
+    history: [],
+    discards: [],
+    options: action.options,
   };
 
   if (action.playerId) {
     onJoinGame(game, new JoinGame(action.gameId, action.playerId));
   }
+
+  // Add the action to the history.
+  game.history.push(action);
 
   return game;
 }
@@ -42,12 +48,17 @@ export function onJoinGame(game: Game|undefined, action: JoinGame) {
     throw new Error(`${game.id} is already in progres.`);
   }
 
-  const player = {
+  const player: Player = {
     id: action.playerId,
     role: Role.NOT_SET,
     hand: [],
+    secrets: [],
   };
   game.playerList.push(player);
+
+  // Add the action to the history.
+  game.history.push(action);
+
   return game;
 }
 
@@ -66,6 +77,10 @@ export function onStartGame(game: Game|undefined, action: StartGame) {
   }
 
   startGame(game);
+
+  // Add the action to the history.
+  game.history.push(action);
+
   return game;
 }
 
@@ -112,20 +127,39 @@ function startGame(game: Game) {
 
   // Assign roles and generate the initial starting hands.
   assignRoles(game.playerList, setup);
-  generateInitialHands(game.playerList, setup);
+  generateInitialHands(game.playerList, setup, game.options || DEFAULT_OPTIONS);
 
   // Start the game.
   game.state = GameState.IN_PROGRESS;
 }
 
+/**
+ * Restarts the game.
+ */
 function restartGame(game: Game) {
   // Reset the game to zero.
-  game.visibleCards = [];
-  game.currentInvestigatorId = undefined;
-  game.round = 1;
+  const newGame: Game = {
+    id: game.id,
+    round: 1,
+    playerList: game.playerList,
+    currentInvestigatorId: undefined,
+    visibleCards: [],
+    state: GameState.NOT_STARTED,
+    created: new Date(),
+    history: [],
+    discards: [],
+    options: game.options,
+  };
+
+  // Reset the players to their base state.
+  for (let player of game.playerList) {
+    player.hand = [];
+    player.secrets = [];
+    player.role = Role.NOT_SET;
+  }
 
   // Start the game.
-  startGame(game);
+  startGame(newGame);
 }
 
 /**
@@ -149,18 +183,24 @@ function assignRoles(players: Player[], setup: PlayerSetup) {
 /**
  * Generates the starting hands for players.
  */
-function generateInitialHands(players: Player[], setup: PlayerSetup) {
+function generateInitialHands(
+    players: Player[], setup: PlayerSetup, options: GameOptions) {
   const cards: Card[] = [];
-  addValues(cards, Card.CTHULHU, setup.cthulhus);
-  addValues(cards, Card.ELDER_SIGN, setup.elderSigns);
-  addValues(cards, Card.FUTILE_INVESTIGATION, setup.rocks);
 
-  // Add a fixed percent chance of insanity's grasp. Long term we'll want
-  // this configurable and we'll deal in X number of special cards chosen
-  // at random.
-  if (Math.random() < .5) {
-    cards[cards.length - 1] = Card.INSANITYS_GRASP;
-  }
+  // Add cthulhu.
+  addValues(cards, Card.CTHULHU, options.cthulhuCount);
+
+  // Add elder signs.
+  addValues(cards, Card.ELDER_SIGN, setup.elderSigns);
+
+  // Add any special cards.
+  const specials = [...SUPPORTED_SPECIAL_CARDS];
+  shuffle(specials);
+  cards.push(...specials.slice(0, options.specialCardCount));
+
+  // Now fill in cards until we have enough.
+  addValues(
+      cards, Card.FUTILE_INVESTIGATION, setup.elderSigns * 5 - cards.length);
 
   // Hand the cards out.
   dealCardsToPlayers(players, cards);
@@ -182,20 +222,36 @@ function addValues<T>(array: Array<T>, value: T, num: number) {
 interface PlayerSetup {
   investigators: number;
   cultists: number;
-  rocks: number;
   elderSigns: number;
-  cthulhus: number;
 }
 
 /**
  * The initial player setups for different numbers of players.
  */
 const PLAYER_SETUPS: Record<number, PlayerSetup> = {
-  2: {investigators: 1, cultists: 1, rocks: 7, elderSigns: 2, cthulhus: 1},
-  3: {investigators: 2, cultists: 1, rocks: 11, elderSigns: 3, cthulhus: 1},
-  4: {investigators: 3, cultists: 2, rocks: 15, elderSigns: 4, cthulhus: 1},
-  5: {investigators: 4, cultists: 2, rocks: 19, elderSigns: 5, cthulhus: 1},
-  6: {investigators: 4, cultists: 2, rocks: 23, elderSigns: 6, cthulhus: 1},
-  7: {investigators: 5, cultists: 3, rocks: 27, elderSigns: 7, cthulhus: 1},
-  8: {investigators: 6, cultists: 3, rocks: 31, elderSigns: 8, cthulhus: 1},
+  2: {investigators: 1, cultists: 1, elderSigns: 2},
+  3: {investigators: 2, cultists: 1, elderSigns: 3},
+  4: {investigators: 3, cultists: 2, elderSigns: 4},
+  5: {investigators: 4, cultists: 2, elderSigns: 5},
+  6: {investigators: 4, cultists: 2, elderSigns: 6},
+  7: {investigators: 5, cultists: 3, elderSigns: 7},
+  8: {investigators: 6, cultists: 3, elderSigns: 8},
+  9: {investigators: 7, cultists: 3, elderSigns: 9},
+  10: {investigators: 7, cultists: 4, elderSigns: 10},
 };
+
+/**
+ * The special cards we support.
+ */
+const SUPPORTED_SPECIAL_CARDS: Card[] = [
+  Card.EVIL_PRESENCE, Card.INSANITYS_GRASP, Card.MIRAGE, Card.PARANOIA,
+  Card.PRIVATE_EYE
+];
+
+/**
+ * The default options if the user doesn't specify.
+ */
+const DEFAULT_OPTIONS: GameOptions = {
+  specialCardCount: 0,
+  cthulhuCount: 1,
+}

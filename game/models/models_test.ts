@@ -10,6 +10,8 @@ describe('getPlayerOrDie', () => {
       visibleCards: [],
       state: GameState.NOT_STARTED,
       created: new Date(),
+      history: [],
+      discards: [],
     };
     expect(() => getPlayerOrDie(game, 'foo')).toThrow();
   });
@@ -18,13 +20,15 @@ describe('getPlayerOrDie', () => {
     const game: Game = {
       id: '',
       round: 1,
-      playerList: [{id: 'foo', hand: [], role: Role.CULTIST}],
+      playerList: [{id: 'foo', hand: [], role: Role.CULTIST, secrets: []}],
       currentInvestigatorId: undefined,
       visibleCards: [],
       state: GameState.NOT_STARTED,
       created: new Date(),
+      history: [],
+      discards: [],
     };
     expect(getPlayerOrDie(game, 'foo'))
-        .toEqual({id: 'foo', hand: [], role: Role.CULTIST});
+        .toEqual({id: 'foo', hand: [], role: Role.CULTIST, secrets: []});
   });
 });

@@ -9,6 +9,22 @@ export type PlayerId = string;
 export type GameId = string;
 
 /**
+ * An entry in the history log.
+ */
+export interface HistoryEntry {}
+
+/**
+ * Options that can be provided to the game to configure it.
+ */
+export interface GameOptions {
+  /** How many special cards you want. */
+  specialCardCount: number;
+
+  /** How many cthulhus you want. */
+  cthulhuCount: number;
+}
+
+/**
  * A single game instance.
  */
 export interface Game {
@@ -32,6 +48,18 @@ export interface Game {
 
   /** When the game was created. */
   created: Date;
+
+  /** All the things that have happened for this game. */
+  history: HistoryEntry[];
+
+  /** All the discarded cards from this round. */
+  discards: Card[];
+
+  /** The ID of a paranoid player, if someone drew paranoia. */
+  paranoidPlayerId?: PlayerId,
+
+      /** The current set of options for this game. */
+      options?: GameOptions,
 }
 
 /**
@@ -46,6 +74,63 @@ export interface Player {
 
   /** The cards in the player's hand. Empty if the game has not begun. */
   hand: Card[];
+
+  /** Any secret information the user knows. */
+  secrets: Secret[];
+}
+
+/**
+ * Things a player knows because of cards they've played.
+ */
+export type Secret = RoleSecret|CardSecret;
+
+/**
+ * Types of secrets.
+ */
+export enum SecretType {
+  ROLE = 'role',
+  CARD = 'card',
+}
+
+/**
+ * The player holding this secret knows another player's role. This secret
+ * stays to the end of the game.
+ */
+export interface RoleSecret {
+  type: SecretType.ROLE;
+
+  /**
+   * The player whose role is known.
+   */
+  player: PlayerId;
+
+  /**
+   * The role that player has.
+   */
+  role: Role;
+}
+
+/**
+ * The player holding this secret knows another player's card. This secret
+ * goes away after a round ends.
+ */
+export interface CardSecret {
+  type: SecretType.CARD;
+
+  /**
+   * The player holding the card.
+   */
+  player: PlayerId;
+
+  /**
+   * The card they're holding.
+   */
+  card: Card;
+
+  /**
+   * The index in their hand the card is at.
+   */
+  cardNumber: number;
 }
 
 /**
@@ -75,6 +160,11 @@ export enum Card {
   ELDER_SIGN = 'Light',
   CTHULHU = 'Cthulhu',
   INSANITYS_GRASP = 'Insanity\'s Grasp',
+  PRIVATE_EYE = 'Private Eye',
+  EVIL_PRESENCE = 'Evil Presence',
+  MIRAGE = 'Mirage',
+  PARANOIA = 'Paranoia',
+  PRESCIENT_VISION = 'Prescient Vision',
 }
 
 /**
