@@ -11,6 +11,8 @@ export function makeGame(
     visibleCards: [],
     state: GameState.IN_PROGRESS,
     created: new Date(),
+    discards: [],
+    history: [],
   };
 
   let playerNum = 0;
@@ -20,6 +22,7 @@ export function makeGame(
       id: playerId,
       role: Role.CULTIST,
       hand: [],
+      secrets: [],
     };
     for (let card of hand) {
       player.hand.push(getCardType(card));
@@ -45,6 +48,14 @@ function getCardType(letter: string): Card {
       return Card.CTHULHU;
     case 'S':
       return Card.ELDER_SIGN;
+    case 'M':
+      return Card.MIRAGE;
+    case 'E':
+      return Card.EVIL_PRESENCE;
+    case 'P':
+      return Card.PARANOIA;
+    case 'I':
+      return Card.PRIVATE_EYE;
     default:
       return Card.FUTILE_INVESTIGATION;
   }

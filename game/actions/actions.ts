@@ -1,4 +1,4 @@
-import {Game, GameId, PlayerId} from '../models/models';
+import {Game, GameId, GameOptions, HistoryEntry, PlayerId} from '../models/models';
 
 export enum ActionType {
   NEW_GAME = '[Game] New Game',
@@ -10,13 +10,15 @@ export enum ActionType {
   PLAY_CARD = '[Card] Play Card',
 }
 
-export interface Action {
+export interface Action extends HistoryEntry {
   type: string;
 }
 
 export class NewGame implements Action {
   type = ActionType.NEW_GAME;
-  constructor(public gameId: GameId, public playerId: PlayerId) {}
+  constructor(
+      public gameId: GameId, public options?: GameOptions,
+      public playerId?: PlayerId) {}
 }
 
 export class JoinGame implements Action {

@@ -2,9 +2,10 @@ import {Observable, Observer} from 'rxjs';
 import {map, switchMap, take, tap} from 'rxjs/operators';
 
 import {ForceGameState, JoinGame, NewGame, PlayCard, RestartGame, SetInvestigator, StartGame} from '../actions/actions';
-import {Game, GameId, GameState, getPlayerOrDie, PlayerId} from '../models/models';
+import {Game, GameId, GameOptions, GameState, getPlayerOrDie, PlayerId} from '../models/models';
 import {onPlayCard} from '../reducers/card_reducers';
 import {onForceGameState, onJoinGame, onNewGame, onRestartGame, onSetInvestigator, onStartGame} from '../reducers/game_reducers';
+
 import {GameStore} from './game_store';
 
 /**
@@ -20,12 +21,13 @@ export class GameFacade {
   /**
    * Starts a new game.
    */
-  createGame(gameId: GameId, playerId?: PlayerId|undefined) : Promise<void> {
+  createGame(gameId: GameId, playerId?: PlayerId, gameOptions?: GameOptions):
+      Promise<void> {
     // Go ahead and create/replace the game.
     return this.store.applyTo(
         gameId,
-        (oldGame: Game) => {
-            return onNewGame(oldGame, new NewGame(gameId, playerId))});
+        (oldGame: Game) => {return onNewGame(
+            oldGame, new NewGame(gameId, gameOptions, playerId))});
   }
 
   /**
