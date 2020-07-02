@@ -9,7 +9,7 @@ import {ErrorService} from './error.service';
   declarations: [],
   imports: [
     CommonModule,
-      MatSnackBarModule
+    MatSnackBarModule
   ],
   providers: [ErrorService]
 })

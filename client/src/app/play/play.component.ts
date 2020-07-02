@@ -4,7 +4,6 @@ import {ActivatedRoute, Router} from '@angular/router';
 import {Card, Game, GameId, GameState, Player, Role} from '../../../../game/models/models';
 import {GameService} from '../game/game.service';
 import {initial, isError, loading, StatusAnd} from '../common/status_and';
-import {MatSnackBar} from '@angular/material/snack-bar';
 import {map, takeUntil} from 'rxjs/operators';
 import {ErrorService} from '../common/error.service';
 import {AngularFireAuth} from '@angular/fire/auth';
@@ -47,8 +46,6 @@ export class PlayComponent implements OnInit {
   private username = '';
 
   constructor(private readonly gameService: GameService,
-              private readonly matSnackBar: MatSnackBar,
-              private readonly router: Router,
               private readonly errorService: ErrorService,
               route: ActivatedRoute,
               private readonly auth: AngularFireAuth) {

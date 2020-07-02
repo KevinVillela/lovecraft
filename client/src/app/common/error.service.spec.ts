@@ -1,12 +1,13 @@
-import { TestBed } from '@angular/core/testing';
+import {TestBed} from '@angular/core/testing';
 
-import { ErrorService } from './error.service';
+import {ErrorService} from './error.service';
+import {CommonServicesModule} from './common.module';
 
 describe('ErrorServiceService', () => {
   let service: ErrorService;
 
   beforeEach(() => {
-    TestBed.configureTestingModule({});
+    TestBed.configureTestingModule({imports: [CommonServicesModule]});
     service = TestBed.inject(ErrorService);
   });
 

@@ -58,8 +58,8 @@ export interface Game {
   /** The ID of a paranoid player, if someone drew paranoia. */
   paranoidPlayerId?: PlayerId,
 
-      /** The current set of options for this game. */
-      options?: GameOptions,
+  /** The current set of options for this game. */
+  options?: GameOptions,
 }
 
 /**

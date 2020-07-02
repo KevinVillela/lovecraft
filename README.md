@@ -41,9 +41,8 @@ cd to the base directory and run `firebase deploy`. You may need to download
 the Angular and Firebase CLIs.
 
 To run the business logic tests, run `karma start my.conf.js` from the root
-directory. This will run all the tests in the `game/` directory. The client
-tests do not work right now, but in theory they could be run with `ng test` from
-the `client` directory.
+directory. This will run all the tests in the `game/` directory. To run the
+client tests, run `ng test` from the `client` directory.
 
 ## Open bugs
 - Does not look good on small screens (those that don't have much horizontal space)

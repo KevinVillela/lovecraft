@@ -9,7 +9,7 @@ export class ErrorService {
   constructor(private readonly matSnackBar: MatSnackBar) {
   }
 
-  displayError(prefix: string, error: any) {
+  displayError(prefix: string, error: any): void {
     let errorString = JSON.stringify(error);
     if (error.message) {
       errorString = error.message;

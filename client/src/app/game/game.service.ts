@@ -2,7 +2,7 @@ import {Injectable} from '@angular/core';
 import {GameFacade} from '../../../../game/facade/facade';
 import {Game, GameId, Player} from '../../../../game/models/models';
 import {error, StatusAnd, wrap} from '../common/status_and';
-import {Observable, Observer, of, from} from 'rxjs';
+import {from, Observable, Observer, of} from 'rxjs';
 import {take} from 'rxjs/operators';
 import {AngularFireAuth} from '@angular/fire/auth';
 
@@ -59,6 +59,7 @@ export class GameService {
   }
 
   restartGame(gameId: GameId) {
-    return from(this.gameFacade.restartGame(gameId));
+    return from(this.gameFacade.restartGame(gameId)).pipe(take(1), wrap);
+    ;
   }
 }
