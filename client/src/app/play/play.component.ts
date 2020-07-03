@@ -1,7 +1,7 @@
 import {Component, OnInit} from '@angular/core';
 import {BehaviorSubject, combineLatest, Observable, ReplaySubject} from 'rxjs';
 import {ActivatedRoute} from '@angular/router';
-import {Card, Game, GameId, GameState, Player, Role} from '../../../../game/models/models';
+import {Card, Game, GameId, GameState, Player, PlayerId, Role} from '../../../../game/models/models';
 import {GameService} from '../game/game.service';
 import {initial, isError, loading, StatusAnd} from '../common/status_and';
 import {map, takeUntil} from 'rxjs/operators';
@@ -36,6 +36,9 @@ export class PlayComponent implements OnInit {
 
   investigateStatus: StatusAnd<void> = initial();
   game = new BehaviorSubject<Game | null>(null);
+  /** The card that is currently being viewed. */
+  magnified: { player: PlayerId, cardIndex: number } | null = null;
+
   private readonly gameId: GameId;
 
   /** Handle on-destroy Subject, used to unsubscribe. */
@@ -73,7 +76,21 @@ export class PlayComponent implements OnInit {
   ngOnInit(): void {
   }
 
-  investigate(target: Player, cardIndex: number): void {
+  /** Magnifies or unmagnifies the given card. */
+  magnifyCard(event: MouseEvent) {
+    const target = (event.target as HTMLElement);
+    if (target.classList.contains('magnified')) {
+      target.classList.remove('magnified');
+    } else {
+      target.classList.add('magnified');
+    }
+  }
+
+  clickCard(target: Player, cardIndex: number, event: MouseEvent): void {
+    if (target.id === this.currentPlayer.id) {
+      this.magnifyCard(event);
+      return;
+    }
     this.investigateStatus = loading();
     this.gameService.investigate(this.gameId, target, cardIndex).pipe(takeUntil(this.destroyed)).subscribe((val) => {
       this.investigateStatus = val;

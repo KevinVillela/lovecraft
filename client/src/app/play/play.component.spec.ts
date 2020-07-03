@@ -57,6 +57,30 @@ describe('PlayComponent', () => {
       {image: CardImage.BACK}, {image: CardImage.BACK}, {image: CardImage.BACK}, {image: CardImage.BACK}, {image: CardImage.BACK}]);
   });
 
+  it('should magnify cards', async () => {
+    await gameService.forceGameState(makeGame(
+        'gameThread', 1, {
+          'villela@google.com': 'RRRRR',
+          'p2@google.com': 'RRRRR',
+        },
+        ''));
+    fixture.detectChanges();
+
+    await harness.pickCardFromPlayer('p2@google.com', 0);
+
+    expect(await harness.isCardMagnifified('villela@google.com', 0)).toBeFalse();
+    await harness.pickCardFromPlayer('villela@google.com', 0);
+    expect(await harness.isCardMagnifified('villela@google.com', 0)).toBeTrue();
+    expect(await harness.isCardMagnifified('villela@google.com', 1)).toBeFalse();
+    await harness.pickCardFromPlayer('villela@google.com', 0);
+    expect(await harness.isCardMagnifified('villela@google.com', 0)).toBeFalse();
+
+    const pickedCard = await harness.pickedCard(0);
+    expect(await pickedCard.isMagnified()).toBeFalse();
+    await pickedCard.click();
+    expect(await pickedCard.isMagnified()).toBeTrue();
+  });
+
   it('should handle paranoia correctly', async () => {
     await gameService.forceGameState(makeGame(
         'gameThread', 1, {

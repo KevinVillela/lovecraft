@@ -1,4 +1,4 @@
-import {ComponentHarness} from '@angular/cdk/testing';
+import {BaseHarnessFilters, ComponentHarness, HarnessPredicate} from '@angular/cdk/testing';
 import {CardImage} from '../play.component';
 import {PlayerId} from '../../../../../game/models/models';
 
@@ -8,6 +8,7 @@ export class PlayComponentHarness extends ComponentHarness {
   private readonly players = this.locatorForAll(PlayerHarness);
   private readonly roleCards = this.locatorForAll('div.role img');
   private readonly playCards = this.locatorForAll('div.play img');
+  private readonly pickedCards = this.locatorForAll(CardHarness.with({ancestor: '.visible-cards-round'}));
 
   async getPlayCards(): Promise<any[]> {
     const playCards = await this.playCards();
@@ -55,6 +56,34 @@ export class PlayComponentHarness extends ComponentHarness {
     }
     throw new Error(`Unable to find player with ID ${playerId}`);
   }
+
+  async isCardMagnifified(playerId: PlayerId, cardIndex: number) {
+    const player = await this.playerForId(playerId);
+    return player.isCardMagnified(cardIndex);
+  }
+
+  /**
+   * Returns the previously picked card of the given index in the given round.
+   */
+  async pickedCard(cardIndex: number) {
+    return (await this.pickedCards())[cardIndex];
+  }
+}
+
+class CardHarness extends ComponentHarness {
+  static hostSelector = '.card';
+
+  static with(options: BaseHarnessFilters): HarnessPredicate<CardHarness> {
+    return new HarnessPredicate(CardHarness, options);
+  }
+
+  async isMagnified() {
+    return (await this.host()).hasClass('magnified');
+  }
+
+  async click() {
+    await (await this.host()).click();
+  }
 }
 
 class PlayerHarness extends ComponentHarness {
@@ -62,7 +91,7 @@ class PlayerHarness extends ComponentHarness {
 
   private readonly roleCard = this.locatorFor('.role img');
   private readonly playerName = this.locatorFor('.player-name');
-  private readonly cards = this.locatorForAll('.play.card');
+  private readonly cards = this.locatorForAll(CardHarness.with({selector: '.play'}));
   private readonly investigatorCard = this.locatorForOptional('.investigator');
 
   async getPlayerName() {
@@ -82,5 +111,10 @@ class PlayerHarness extends ComponentHarness {
   async getRoleImage(): Promise<CardImage> {
     const roleCard = await this.roleCard();
     return roleCard.getAttribute('src') as Promise<CardImage>;
+  }
+
+  async isCardMagnified(cardIndex: number) {
+    const cards = await this.cards();
+    return cards[cardIndex].isMagnified();
   }
 }

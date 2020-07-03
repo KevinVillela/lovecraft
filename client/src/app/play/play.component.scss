@@ -48,16 +48,27 @@
 
 .card {
 
-  &:hover {
-    transform: scale(2);
-    transition: transform 0.2s ease;
-    cursor: pointer;
+  :not(.magnified) {
+    &:hover {
+      transform: scale(2);
+      transition: transform 0.2s ease;
+      cursor: pointer;
+    }
   }
 
   img {
     height: 48px;
     width: 48px;
   }
+}
+
+.magnified {
+  transform: scale(12);
+  transition: transform 0.2s ease;
+  cursor: pointer;
+  position: fixed;
+  top: 50%;
+  left: 50%;
 }
 
 .role {
