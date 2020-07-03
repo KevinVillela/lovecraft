@@ -20,7 +20,10 @@ describe('PlayComponent', () => {
     TestBed.configureTestingModule({
       imports: [PlayModule, TestModule],
       declarations: [TestComponent],
-      providers: [{provide: ActivatedRoute, useValue: {snapshot: {paramMap: new Map<string, string>([['game_id', 'gameThread']])}}}]
+      providers: [{
+        provide: ActivatedRoute,
+        useValue: {snapshot: {paramMap: new Map<string, string>([['game_id', 'gameThread']])}}
+      }]
     });
   }));
 
@@ -52,6 +55,41 @@ describe('PlayComponent', () => {
     expect(playCards).toEqual([
       {image: CardImage.CTHULHU}, {image: CardImage.ELDER_SIGN}, {image: CardImage.MIRAGE}, {image: CardImage.EVIL_PRESENCE}, {image: CardImage.PARANOIA},
       {image: CardImage.BACK}, {image: CardImage.BACK}, {image: CardImage.BACK}, {image: CardImage.BACK}, {image: CardImage.BACK}]);
+  });
+
+  it('should handle paranoia correctly', async () => {
+    await gameService.forceGameState(makeGame(
+        'gameThread', 1, {
+          'villela@google.com': 'RRRRR',
+          'p2@google.com': 'RRRRP',
+          'p3@google.com': 'RRRRR',
+        },
+        ''));
+    fixture.detectChanges();
+
+    await harness.pickCardFromPlayer('p2@google.com', 4);
+
+    expect(await harness.getInvestigator()).toEqual('p2@google.com');
+    await harness.pickCardFromPlayer('p3@google.com', 0);
+    expect(await harness.getInvestigator()).toEqual('p2@google.com');
+  });
+
+  it('should handle private eye correctly', async () => {
+    await gameService.forceGameState(makeGame(
+        'gameThread', 1, {
+          'villela@google.com': 'RRRRR',
+          'p2@google.com': 'RRRRI',
+          'p3@google.com': 'RRRRR',
+        },
+        ''));
+    fixture.detectChanges();
+
+    expect(await harness.roleForPlayer('villela@google.com')).toEqual(CardImage.CULTIST);
+
+    expect(await harness.roleForPlayer('p2@google.com')).toEqual(CardImage.BACK);
+
+    await harness.pickCardFromPlayer('p2@google.com', 4);
+    expect(await harness.roleForPlayer('p2@google.com')).toEqual(CardImage.CULTIST);
   });
 });
 

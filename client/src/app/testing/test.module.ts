@@ -7,6 +7,8 @@ import {BehaviorSubject} from 'rxjs';
 import {RouterTestingModule} from '@angular/router/testing';
 import {NoopAnimationsModule} from '@angular/platform-browser/animations';
 
+jasmine.DEFAULT_TIMEOUT_INTERVAL = 30 * 1000;  // 30 seconds
+
 class FakeAngularFireAuth {
   user = new BehaviorSubject({displayName: 'villela@google.com'});
 }
@@ -22,7 +24,10 @@ class FakeAngularFireAuth {
     RouterTestingModule,
     NoopAnimationsModule
   ],
-  providers: [{provide: GameFacade, useFactory: () => new GameFacade(new InMemoryGameStore())},
+  providers: [{
+    provide: GameFacade,
+    useFactory: () => new GameFacade(new InMemoryGameStore())
+  },
     {provide: AngularFireAuth, useClass: FakeAngularFireAuth}
   ],
 })

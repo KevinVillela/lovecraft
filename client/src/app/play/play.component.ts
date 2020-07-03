@@ -1,5 +1,5 @@
 import {Component, OnInit} from '@angular/core';
-import {BehaviorSubject, Observable, ReplaySubject} from 'rxjs';
+import {BehaviorSubject, combineLatest, Observable, ReplaySubject} from 'rxjs';
 import {ActivatedRoute} from '@angular/router';
 import {Card, Game, GameId, GameState, Player, Role} from '../../../../game/models/models';
 import {GameService} from '../game/game.service';
@@ -43,19 +43,20 @@ export class PlayComponent implements OnInit {
 
   readonly players: Observable<CirclePlayer[]>;
   readonly cardRounds: Observable<Card[][]>;
-  private username = '';
+  /** The player that this client belongs to. */
+  private currentPlayer: Player;
 
   constructor(private readonly gameService: GameService,
               private readonly errorService: ErrorService,
               route: ActivatedRoute,
               private readonly auth: AngularFireAuth) {
-    this.auth.user.subscribe(value => {
-      this.username = value.displayName || '';
-    });
     this.gameId = route.snapshot.paramMap.get('game_id');
     this.gameService.subscribeToGame(this.gameId, this.game);
     this.players = this.game.pipe(takeUntil(this.destroyed),
         map(game => ellipse(game?.playerList || [], 400, 250, 5)));
+    combineLatest([this.players, this.auth.user]).pipe(takeUntil(this.destroyed)).subscribe(([players, user]) => {
+      this.currentPlayer = players.find((player) => player.player.id === user.displayName)?.player;
+    });
     this.cardRounds = this.game.pipe(map(value => {
       if (!value) {
         return [];
@@ -84,11 +85,20 @@ export class PlayComponent implements OnInit {
 
   /** Returns true if we can show the card to the current player. */
   shouldShowCard(player?: Player): boolean {
-    return player?.id === this.username || this.game.value.state !== GameState.IN_PROGRESS;
+    return player?.id === this.currentPlayer.id || this.game.value.state !== GameState.IN_PROGRESS;
+  }
+
+  private shouldShowRoleCard(player: Player): boolean {
+    if (this.shouldShowCard(player)) {
+      return true;
+    }
+    return !!this.currentPlayer.secrets.find((secret) =>
+        secret.player === player.id);
+
   }
 
   tooltipForRole(role: Role, player: Player): string {
-    if (!this.shouldShowCard(player)) {
+    if (!this.shouldShowRoleCard(player)) {
       return 'The winning team. Maybe?';
     }
     switch (role) {
@@ -102,7 +112,7 @@ export class PlayComponent implements OnInit {
   }
 
   imageForRole(role: Role, player: Player): CardImage {
-    if (!this.shouldShowCard(player)) {
+    if (!this.shouldShowRoleCard(player)) {
       return CardImage.BACK;
     }
     switch (role) {

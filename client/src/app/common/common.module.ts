@@ -1,8 +1,7 @@
-import { NgModule } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import {NgModule} from '@angular/core';
+import {CommonModule} from '@angular/common';
 import {MatSnackBarModule} from '@angular/material/snack-bar';
 import {ErrorService} from './error.service';
-
 
 
 @NgModule({
@@ -13,4 +12,5 @@ import {ErrorService} from './error.service';
   ],
   providers: [ErrorService]
 })
-export class CommonServicesModule { }
+export class CommonServicesModule {
+}
