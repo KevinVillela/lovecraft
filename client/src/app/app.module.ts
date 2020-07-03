@@ -16,6 +16,7 @@ import {CommonModule} from '@angular/common';
 import {LobbyModule} from './lobby/lobby.module';
 import {PlayModule} from './play/play.module';
 import {CommonServicesModule} from './common/common.module';
+import {MatTooltipModule} from '@angular/material/tooltip';
 
 
 // The web app's Firebase configuration
@@ -48,6 +49,7 @@ const firebaseConfig = {
     LobbyModule,
     PlayModule,
     CommonServicesModule,
+    MatTooltipModule,
   ],
   providers: [{
     provide: GameFacade,

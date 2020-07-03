@@ -1,9 +1,9 @@
 import {Component, OnInit} from '@angular/core';
 import {GameService} from '../game/game.service';
-import {initial, isError, isReady, loading, StatusAnd} from '../common/status_and';
-import {Game} from '../../../../game/models/models';
+import {initial, isError, isReady, loading, ready, StatusAnd} from '../common/status_and';
+import {Game, GameState} from '../../../../game/models/models';
 import {ReplaySubject} from 'rxjs';
-import {takeUntil} from 'rxjs/operators';
+import {map, takeUntil} from 'rxjs/operators';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {Router} from '@angular/router';
 import {ErrorService} from '../common/error.service';
@@ -31,7 +31,18 @@ export class MainMenuComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.gameService.listGamesStream().pipe(takeUntil(this.destroyed)).subscribe((val) => {
+    this.gameService.listGamesStream().pipe(takeUntil(this.destroyed), map((games) => {
+      if (isReady(games)) {
+        const filtered: Record<string, Game> = {};
+        for (const [gameId, game] of Object.entries(games.result)) {
+          if (game.state !== GameState.INVESTIGATORS_WON && game.state !== GameState.CULTISTS_WON) {
+            filtered[gameId] = game;
+          }
+        }
+        return ready(filtered);
+      }
+      return games;
+    })).subscribe((val) => {
       if (isReady(val)) {
         this.allGames = val.result;
       } else if (isError(val)) {

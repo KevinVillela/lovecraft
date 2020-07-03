@@ -119,17 +119,21 @@ export class PlayComponent implements OnInit {
     if (!this.shouldShowCard(player)) {
       return 'Unknown';
     }
+    return this.tooltipForVisibleCard(card);
+  }
+
+  tooltipForVisibleCard(card: Card): string {
     switch (card) {
       case Card.PRIVATE_EYE:
-        return 'Secretly reveal your role to the investigator.';
+        return 'Private Eye - Secretly reveal your role to the investigator.';
       case Card.EVIL_PRESENCE:
-        return 'Return all your unrevealed cards to the reshuffle pile.';
+        return 'Evil Presence - Return all your unrevealed cards to the reshuffle pile.';
       case Card.MIRAGE:
-        return 'Return a previously discovered elder sign to the reshuffle pile.';
+        return 'Mirage - Return a previously discovered elder sign to the reshuffle pile.';
       case Card.PARANOIA:
-        return 'Control the flashlight for the rest of the round.';
+        return 'Paranoia - Control the flashlight for the rest of the round.';
       case Card.PRESCIENT_VISION:
-        return 'Reveal a card, flip it back over.';
+        return 'Prescient Vison - Reveal a card, flip it back over.';
       case Card.FUTILE_INVESTIGATION:
         return 'A rock.';
       case Card.ELDER_SIGN:
@@ -225,7 +229,7 @@ export enum CardImage {
   ELDER_SIGN = 'assets/elder_sign.png',
   EVIL_PRESENCE = 'assets/evil_presence.png',
   FLASHLIGHT = 'assets/flashlight.png',
-  INSANITYS_GRASP = 'assets/insanitys_grash.png',
+  INSANITYS_GRASP = 'assets/insanitys_grasp.png',
   INVESTIGATOR = 'assets/investigator.png',
   MIRAGE = 'assets/mirage.png',
   PARANOIA = 'assets/paranoia.png',

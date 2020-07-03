@@ -31,7 +31,7 @@ describe('Facade', () => {
 
     it('rejects if the ID exists.', async () => {
       await facade.createGame('id1', 'player1');
-      return expect(facade.createGame('id1')).rejects;
+      return expectAsync(facade.createGame('id1')).toBeRejected();
     });
   });
 
@@ -48,7 +48,21 @@ describe('Facade', () => {
     });
 
     it('rejects if the game does not exist.', async () => {
-      return expect(facade.joinGame('game1', 'player2')).rejects;
+      return expectAsync(facade.joinGame('game1', 'player2')).toBeRejected();
+    });
+  });
+
+  describe('UpdateGameOptions', () => {
+    it('updates a game\'s options', async () => {
+      facade.createGame('game1', 'player1');
+      facade.updateGameOptions('game1', {cthulhuCount: 1, specialCardCount: 2});
+
+      const game = await facade.getGame('game1');
+      expect(game.options).toEqual({cthulhuCount: 1, specialCardCount: 2});
+    });
+
+    it('rejects if the game does not exist.', async () => {
+      return expectAsync(facade.updateGameOptions('game1', {specialCardCount: 1, cthulhuCount: 1})).toBeRejected();
     });
   });
 
@@ -69,7 +83,7 @@ describe('Facade', () => {
     });
 
     it('rejects if the game does not exist.', async () => {
-      return expect(facade.restartGame('game1')).rejects;
+      return expectAsync(facade.restartGame('game1')).toBeRejected();
     });
   });
 
@@ -259,7 +273,8 @@ describe('Facade', () => {
         error: (error) => {
           throw error;
         },
-        complete: () => {}
+        complete: () => {
+        }
       });
 
       facade.joinGame('id', 'p1');

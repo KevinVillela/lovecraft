@@ -1,17 +1,22 @@
 <mat-toolbar color="primary">
-  <a [routerLink]="['/']">
+  <a [routerLink]="['/']" matTooltip="Back to main menu">
     <img class="cthulhu" src="https://image.flaticon.com/icons/png/512/1137/1137005.png">
   </a>
   <span>Don't Mess with Cthulhu</span>
   <span class="spacer"></span>
   <button mat-icon-button class="example-icon favorite-icon"
+          matTooltip="<3"
           aria-label="Example icon-button with heart icon">
     <mat-icon>favorite</mat-icon>
   </button>
-  <button mat-icon-button class="example-icon" aria-label="Example icon-button with share icon">
+  <a href="https://github.com/KevinVillela/lovecraft"
+     matTooltip="View source"
+     mat-icon-button class="example-icon"
+     aria-label="Example icon-button with share icon">
     <mat-icon>share</mat-icon>
-  </button>
-  <button mat-icon-button class="example-icon" *ngIf="auth.user | async" (click)="logout()">
+  </a>
+  <button mat-icon-button class="example-icon" *ngIf="auth.user | async" (click)="logout()"
+          matTooltip="Logout">
     <mat-icon>logout</mat-icon>
   </button>
 </mat-toolbar>

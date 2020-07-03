@@ -26,6 +26,11 @@ export class JoinGame implements Action {
   constructor(public gameId: GameId, public playerId: PlayerId) {}
 }
 
+export class UpdateGameOptions implements Action {
+  type = ActionType.JOIN_GAME;
+  constructor(public gameId: GameId, public options: GameOptions) {}
+}
+
 export class StartGame implements Action {
   type = ActionType.START_GAME;
   constructor(public gameId: GameId) {}

@@ -7,12 +7,13 @@ import {MatButtonModule} from '@angular/material/button';
 import {MatIconModule} from '@angular/material/icon';
 import {FormsModule} from '@angular/forms';
 import {MatOptionModule} from '@angular/material/core';
+import {MatCheckboxModule} from '@angular/material/checkbox';
 
 @NgModule({
   declarations: [LobbyComponent],
   exports: [LobbyComponent],
   imports: [
-    CommonModule, MatSnackBarModule, MatListModule, MatButtonModule, MatIconModule, FormsModule, MatOptionModule
+    CommonModule, MatSnackBarModule, MatListModule, MatButtonModule, MatIconModule, FormsModule, MatOptionModule, MatCheckboxModule
   ]
 })
 export class LobbyModule {

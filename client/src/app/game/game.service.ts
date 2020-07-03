@@ -1,6 +1,6 @@
 import {Injectable} from '@angular/core';
 import {GameFacade} from '../../../../game/facade/facade';
-import {Game, GameId, Player} from '../../../../game/models/models';
+import {Game, GameId, GameOptions, Player} from '../../../../game/models/models';
 import {error, StatusAnd, wrap} from '../common/status_and';
 import {from, Observable, Observer, of} from 'rxjs';
 import {take} from 'rxjs/operators';
@@ -44,6 +44,10 @@ export class GameService {
 
   joinGame(gameId: GameId) {
     return from(this.gameFacade.joinGame(gameId, this.username)).pipe(take(1), wrap);
+  }
+
+  updateGameOptions(gameId: GameId, options: GameOptions): Observable<StatusAnd<void>> {
+    return from(this.gameFacade.updateGameOptions(gameId, options)).pipe(take(1), wrap);
   }
 
   subscribeToGame(gameId: GameId, observable: Observer<Game>) {

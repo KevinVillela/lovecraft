@@ -6,5 +6,18 @@
 }
 
 .container {
-  width: 300px;
+  width: 500px;
+}
+
+.options {
+  display: flex;
+  flex-direction: row;
+
+  button, mat-checkbox {
+    margin-right: 8px;
+  }
+
+  mat-checkbox {
+    color: white;
+  }
 }

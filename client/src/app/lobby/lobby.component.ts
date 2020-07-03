@@ -1,5 +1,5 @@
 import {ChangeDetectionStrategy, Component, OnInit} from '@angular/core';
-import {ReplaySubject} from 'rxjs';
+import {BehaviorSubject, ReplaySubject} from 'rxjs';
 import {Game, GameId, GameState} from '../../../../game/models/models';
 import {GameService} from '../game/game.service';
 import {ActivatedRoute, Router} from '@angular/router';
@@ -7,6 +7,7 @@ import {takeUntil} from 'rxjs/operators';
 import {initial, isError, loading, StatusAnd} from '../common/status_and';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {ErrorService} from '../common/error.service';
+import {SUPPORTED_SPECIAL_CARDS} from '../../../../game/reducers/game_reducers';
 
 @Component({
   selector: 'app-lobby',
@@ -17,7 +18,7 @@ import {ErrorService} from '../common/error.service';
 export class LobbyComponent implements OnInit {
 
   startGameStatus: StatusAnd<void> = initial();
-  game = new ReplaySubject<Game>();
+  game = new BehaviorSubject<Game | null>(null);
   private readonly gameId: GameId;
 
   /** Handle on-destroy Subject, used to unsubscribe. */
@@ -40,14 +41,34 @@ export class LobbyComponent implements OnInit {
   ngOnInit(): void {
   }
 
-  startGame() {
+  startGame(): void {
     this.startGameStatus = loading();
     this.gameService.startGame(this.gameId).pipe(takeUntil(this.destroyed)).subscribe((val) => {
       this.startGameStatus = val;
       if (isError(val)) {
         this.errorService.displayError('Error starting game', val.error);
       }
-    })
+    });
+  }
+
+  updateSpecialCards(checked: boolean): void {
+    const currentOptions = {...this.game.value?.options};
+    currentOptions.specialCardCount = checked ? SUPPORTED_SPECIAL_CARDS.length : 0;
+    this.gameService.updateGameOptions(this.gameId, currentOptions).pipe(takeUntil(this.destroyed)).subscribe((val) => {
+      if (isError(val)) {
+        this.errorService.displayError('Error updating number of special cards', val.error);
+      }
+    });
+  }
+
+  updateCthulhus(checked: boolean): void {
+    const currentOptions = {...this.game.value?.options};
+    currentOptions.cthulhuCount = checked ? 2 : 1;
+    this.gameService.updateGameOptions(this.gameId, currentOptions).pipe(takeUntil(this.destroyed)).subscribe((val) => {
+      if (isError(val)) {
+        this.errorService.displayError('Error updating number of Cthulhus', val.error);
+      }
+    });
   }
 
   ngOnDestroy() {

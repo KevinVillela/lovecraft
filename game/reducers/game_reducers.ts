@@ -1,4 +1,4 @@
-import {ForceGameState, JoinGame, NewGame, RestartGame, SetInvestigator, StartGame} from '../actions/actions';
+import {ForceGameState, JoinGame, NewGame, RestartGame, SetInvestigator, StartGame, UpdateGameOptions} from '../actions/actions';
 import {Card, Game, GameOptions, GameState, getPlayerOrDie, Player, Role} from '../models/models';
 
 import {dealCardsToPlayers, shuffle} from './utilities';
@@ -55,6 +55,25 @@ export function onJoinGame(game: Game | undefined, action: JoinGame) {
     secrets: [],
   };
   game.playerList.push(player);
+
+  // Add the action to the history.
+  game.history.push(action);
+
+  return game;
+}
+
+/**
+ * Handles updating the game options.
+ */
+export function onUpdateGameOptions(game: Game | undefined, action: UpdateGameOptions) {
+  if (!game) {
+    throw new Error(`No game ${action.gameId} exists.`);
+  }
+  if (game.state !== GameState.NOT_STARTED) {
+    throw new Error(`${game.id} is already in progress.`);
+  }
+
+  game.options = action.options;
 
   // Add the action to the history.
   game.history.push(action);
@@ -243,7 +262,7 @@ const PLAYER_SETUPS: Record<number, PlayerSetup> = {
 /**
  * The special cards we support.
  */
-const SUPPORTED_SPECIAL_CARDS: Card[] = [
+export const SUPPORTED_SPECIAL_CARDS: Card[] = [
   Card.EVIL_PRESENCE, Card.INSANITYS_GRASP, Card.MIRAGE, Card.PARANOIA,
   Card.PRIVATE_EYE
 ];
