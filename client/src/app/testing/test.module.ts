@@ -6,6 +6,7 @@ import {AngularFireAuth} from '@angular/fire/auth';
 import {BehaviorSubject} from 'rxjs';
 import {RouterTestingModule} from '@angular/router/testing';
 import {NoopAnimationsModule} from '@angular/platform-browser/animations';
+import {PlayComponent} from '../play/play.component';
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 30 * 1000;  // 30 seconds
 
@@ -21,7 +22,10 @@ class FakeAngularFireAuth {
   declarations: [],
   imports: [
     CommonModule,
-    RouterTestingModule,
+    RouterTestingModule.withRoutes([{
+      path: 'gameon/:game_id',
+      component: PlayComponent
+    },]),
     NoopAnimationsModule
   ],
   providers: [{

@@ -1,9 +1,9 @@
 import {ChangeDetectionStrategy, Component, OnInit} from '@angular/core';
-import {BehaviorSubject, ReplaySubject} from 'rxjs';
-import {Game, GameId, GameState} from '../../../../game/models/models';
+import {BehaviorSubject, Observable, ReplaySubject} from 'rxjs';
+import {Game, GameId, GameState, Player} from '../../../../game/models/models';
 import {GameService} from '../game/game.service';
 import {ActivatedRoute, Router} from '@angular/router';
-import {takeUntil} from 'rxjs/operators';
+import {map, takeUntil} from 'rxjs/operators';
 import {initial, isError, loading, StatusAnd} from '../common/status_and';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {ErrorService} from '../common/error.service';
@@ -23,6 +23,8 @@ export class LobbyComponent implements OnInit {
 
   /** Handle on-destroy Subject, used to unsubscribe. */
   private readonly destroyed = new ReplaySubject<void>(1);
+  /** Returns true iff the current player is in the current game. */
+  readonly inGame: Observable<boolean>;
 
   constructor(private readonly gameService: GameService,
               private readonly matSnackBar: MatSnackBar,
@@ -35,6 +37,9 @@ export class LobbyComponent implements OnInit {
         this.router.navigateByUrl(`gameon/${this.gameId}`);
       }
     });
+    this.inGame = this.game.pipe(map((val) => {
+      return !!val?.playerList?.find((player) => player.id === this.gameService.username);
+    }));
     this.gameService.subscribeToGame(this.gameId, this.game);
   }
 
@@ -47,6 +52,14 @@ export class LobbyComponent implements OnInit {
       this.startGameStatus = val;
       if (isError(val)) {
         this.errorService.displayError('Error starting game', val.error);
+      }
+    });
+  }
+
+  joinGame(): void {
+    this.gameService.joinGame(this.gameId).pipe(takeUntil(this.destroyed)).subscribe((val) => {
+      if (isError(val)) {
+        this.errorService.displayError('Error joining game', val.error);
       }
     });
   }

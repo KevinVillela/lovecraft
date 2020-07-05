@@ -1,4 +1,41 @@
-import {Card, Game, GameState, Player, Role} from '../models/models';
+import {Card, Game, GameId, GameState, Player, PlayerId, Role} from '../models/models';
+
+export class GameBuilder {
+  private readonly game: Game;
+
+  constructor(gameId: GameId) {
+    this.game = {
+      id: gameId,
+      round: 0,
+      playerList: [],
+      currentInvestigatorId: undefined,
+      visibleCards: [],
+      state: GameState.IN_PROGRESS,
+      created: new Date(),
+      discards: [],
+      history: [],
+    };
+  }
+
+  setState(state: GameState) {
+    this.game.state = state;
+    return this;
+  }
+
+  addPlayer(id: PlayerId, role = Role.NOT_SET, hand = []) {
+    this.game.playerList.push({
+      id,
+      secrets: [],
+      role,
+      hand,
+    });
+    return this;
+  }
+
+  build() {
+    return this.game;
+  }
+}
 
 export function makeGame(
     gameId: string, round: number, hands: Record<string, string>,

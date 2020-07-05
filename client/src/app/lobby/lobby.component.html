@@ -1,16 +1,23 @@
 <div class="container">
   <div class="options">
-  <button mat-raised-button color="primary" (click)="startGame()">
-    Start Game
-  </button>
-    <mat-checkbox [ngModel]="(game | async)?.options?.specialCardCount > 0" (ngModelChange)="updateSpecialCards($event)">
+    <button mat-raised-button color="primary" (click)="startGame()" *ngIf="inGame | async"
+            matTooltip="Start the game! (Anyone can do this!)">
+      Start Game
+    </button>
+    <button mat-raised-button color="warn" (click)="joinGame()" *ngIf="!(inGame | async)"
+            matTooltip="Join the game! (You may have been kicked out of it due to a bug)">
+      Join Game
+    </button>
+    <mat-checkbox [ngModel]="(game | async)?.options?.specialCardCount > 0"
+                  (ngModelChange)="updateSpecialCards($event)">
       Special cards?
     </mat-checkbox>
 
-    <mat-checkbox [ngModel]="(game | async)?.options?.cthulhuCount > 0" (ngModelChange)="updateCthulhus($event)">
+    <mat-checkbox [ngModel]="(game | async)?.options?.cthulhuCount > 0"
+                  (ngModelChange)="updateCthulhus($event)">
       2 Cthulhus?
     </mat-checkbox>
-</div>
+  </div>
 
   <mat-list>
     <mat-list-item *ngFor="let player of (game | async)?.playerList">

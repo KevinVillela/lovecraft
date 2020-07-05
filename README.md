@@ -47,3 +47,4 @@ client tests, run `ng test` from the `client` directory.
 ## Open bugs
 - Does not look good on small screens (those that don't have much horizontal space)
 - Sometimes people get kicked out when joining a game and must leave/reenter the game.
+  We should solve this with locking: https://firebase.google.com/docs/firestore/manage-data/transactions.

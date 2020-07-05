@@ -47,7 +47,7 @@ export class PlayComponent implements OnInit {
   readonly players: Observable<CirclePlayer[]>;
   readonly cardRounds: Observable<Card[][]>;
   /** The player that this client belongs to. */
-  private currentPlayer: Player;
+  private currentPlayer?: Player;
 
   constructor(private readonly gameService: GameService,
               private readonly errorService: ErrorService,
@@ -87,7 +87,7 @@ export class PlayComponent implements OnInit {
   }
 
   clickCard(target: Player, cardIndex: number, event: MouseEvent): void {
-    if (target.id === this.currentPlayer.id) {
+    if (target.id === this.currentPlayer?.id) {
       this.magnifyCard(event);
       return;
     }
@@ -102,14 +102,14 @@ export class PlayComponent implements OnInit {
 
   /** Returns true if we can show the card to the current player. */
   shouldShowCard(player?: Player): boolean {
-    return player?.id === this.currentPlayer.id || this.game.value.state !== GameState.IN_PROGRESS;
+    return player?.id === this.currentPlayer?.id || this.game.value.state !== GameState.IN_PROGRESS;
   }
 
   private shouldShowRoleCard(player: Player): boolean {
     if (this.shouldShowCard(player)) {
       return true;
     }
-    return !!this.currentPlayer.secrets.find((secret) =>
+    return !!this.currentPlayer?.secrets.find((secret) =>
         secret.player === player.id);
 
   }
