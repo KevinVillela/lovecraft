@@ -47,6 +47,25 @@ describe('Facade', () => {
       expect(game.state).toEqual(GameState.IN_PROGRESS);
     });
 
+    it('allows up to the max players', async () => {
+      await facade.createGame('game1', 'player1');
+      for (let i = 0; i < 9; i++) {
+        await facade.joinGame('game1', `player2${i + 1}`);
+      }
+      await expectAsync(facade.startGame('game1')).toBeResolved();
+
+      const game = await facade.getGame('game1');
+      expect(game.state).toEqual(GameState.IN_PROGRESS);
+    });
+
+    it('does not allow more than max players', async () => {
+      await facade.createGame('game1', 'player1');
+      for (let i = 0; i < 11; i++) {
+        await facade.joinGame('game1', `player2${i + 1}`);
+      }
+      await expectAsync(facade.startGame('game1')).toBeRejectedWithError(/2-10/);
+    });
+
     it('rejects if the game does not exist.', async () => {
       return expectAsync(facade.joinGame('game1', 'player2')).toBeRejected();
     });
@@ -62,7 +81,10 @@ describe('Facade', () => {
     });
 
     it('rejects if the game does not exist.', async () => {
-      return expectAsync(facade.updateGameOptions('game1', {specialCardCount: 1, cthulhuCount: 1})).toBeRejected();
+      return expectAsync(facade.updateGameOptions('game1', {
+        specialCardCount: 1,
+        cthulhuCount: 1
+      })).toBeRejected();
     });
   });
 

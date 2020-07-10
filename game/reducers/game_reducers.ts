@@ -91,8 +91,12 @@ export function onStartGame(game: Game | undefined, action: StartGame) {
   if (game.state !== GameState.NOT_STARTED) {
     throw new Error(`${game.id} has already been started.`);
   }
-  if (game.playerList.length > 8) {
-    throw new Error('We only support 4-8 players at this time.');
+  // Object.keys will always return string[]: https://stackoverflow.com/questions/52856496/typescript-object-keys-return-string
+  const setupKeys = Object.keys(PLAYER_SETUPS) as unknown as Array<keyof typeof PLAYER_SETUPS>;
+  const minPlayers = Math.min(...setupKeys);
+  const maxPlayers = Math.max(...setupKeys);
+  if (game.playerList.length > maxPlayers) {
+    throw new Error(`We only support ${minPlayers}-${maxPlayers} players at this time.`);
   }
 
   startGame(game);
