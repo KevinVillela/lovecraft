@@ -261,6 +261,7 @@ const PLAYER_SETUPS: Record<number, PlayerSetup> = {
   8: {investigators: 6, cultists: 3, elderSigns: 8},
   9: {investigators: 7, cultists: 3, elderSigns: 9},
   10: {investigators: 7, cultists: 4, elderSigns: 10},
+  11: {investigators: 7, cultists: 4, elderSigns: 11},
 };
 
 /**
