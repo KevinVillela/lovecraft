@@ -62,6 +62,10 @@
   }
 }
 
+.highlight {
+  border: yellow 1px solid;
+}
+
 .magnified {
   transform: scale(12);
   transition: transform 0.2s ease;
@@ -69,7 +73,7 @@
   position: fixed;
   top: 50%;
   left: 50%;
-}
+}D
 
 .role {
   margin-right: 16px;

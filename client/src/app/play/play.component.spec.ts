@@ -81,6 +81,25 @@ describe('PlayComponent', () => {
     expect(await pickedCard.isMagnified()).toBeTrue();
   });
 
+  it('should highlight investigator', async () => {
+    await gameService.forceGameState(makeGame(
+        'gameThread', 1, {
+          'villela@google.com': 'RRRRR',
+          'p2@google.com': 'RRRRR',
+        },
+        ''));
+    fixture.detectChanges();
+
+    expect(await harness.getInvestigator()).toEqual('villela@google.com');
+    expect(await harness.isHighlighted('villela@google.com')).toBe(true);
+    expect(await harness.isHighlighted('p2@google.com')).toBe(false);
+
+    await harness.pickCardFromPlayer('p2@google.com', 0);
+    expect(await harness.getInvestigator()).toEqual('p2@google.com');
+    expect(await harness.isHighlighted('villela@google.com')).toBe(false);
+    expect(await harness.isHighlighted('p2@google.com')).toBe(true);
+  });
+
   it('should handle paranoia correctly', async () => {
     await gameService.forceGameState(makeGame(
         'gameThread', 1, {

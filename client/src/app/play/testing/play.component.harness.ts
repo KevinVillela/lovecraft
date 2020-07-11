@@ -42,6 +42,12 @@ export class PlayComponentHarness extends ComponentHarness {
     }
   }
 
+  /** Returns true if the given player has a highlight border. */
+  async isHighlighted(playerId: PlayerId) {
+    const player = await this.playerForId(playerId);
+    return player.isHighlighted();
+  }
+
   async roleForPlayer(playerId: PlayerId): Promise<CardImage> {
     const player = await this.playerForId(playerId);
     return player.getRoleImage();
@@ -116,5 +122,10 @@ class PlayerHarness extends ComponentHarness {
   async isCardMagnified(cardIndex: number) {
     const cards = await this.cards();
     return cards[cardIndex].isMagnified();
+  }
+
+  async isHighlighted(): Promise<boolean> {
+    const host = await this.host();
+    return host.hasClass('highlight');
   }
 }

@@ -32,6 +32,19 @@ export class GameBuilder {
     return this;
   }
 
+  setInvestigator(id: PlayerId) {
+    this.game.currentInvestigatorId = id;
+    return this;
+  }
+
+  setVisibleCards(visibleCards: string) {
+    for (let card of visibleCards) {
+      const type = getCardType(card);
+      this.game.visibleCards.push(type);
+    }
+    return this;
+  }
+
   build() {
     return this.game;
   }

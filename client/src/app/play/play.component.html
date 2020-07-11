@@ -3,6 +3,7 @@
 
   <div class="circle" id="circle">
     <div *ngFor="let player of (players | async); trackBy: trackByIndex" class="player"
+         [class.highlight]="game.value?.currentInvestigatorId === player.player.id"
          [style.top.px]="player.top"
          [style.left.px]="player.left">
     <span class="player-name">
@@ -25,8 +26,7 @@
       <div class="cards">
         <div class="card investigator"
              *ngIf="game.value?.currentInvestigatorId === player.player.id"
-             matTooltip="The lead investigator."
-             [@simpleFadeAnimation]="'in'">
+             matTooltip="The lead investigator.">
           <img
               src="assets/flashlight.png">
         </div>
@@ -49,6 +49,7 @@
 </div>
 
 <div class="end-container"
+     [@simpleFadeAnimation]="'in'"
      *ngIf="game.value?.state === 'Cultists Win' || game.value?.state === 'Investigators Win'">
   <ng-container *ngIf="game.value?.state === 'Cultists Win'">
     <div class="animated intensifies ending">Cultists Win!!</div>

@@ -8,6 +8,7 @@ import {map, takeUntil} from 'rxjs/operators';
 import {ErrorService} from '../common/error.service';
 import {AngularFireAuth} from '@angular/fire/auth';
 import {animate, state, style, transition, trigger} from '@angular/animations';
+import {NoiseService} from '../app/play/noise.service';
 
 @Component({
   selector: 'app-play',
@@ -23,7 +24,7 @@ import {animate, state, style, transition, trigger} from '@angular/animations';
       // fade in when created. this could also be written as transition('void => *')
       transition(':enter', [
         style({opacity: 0}),
-        animate(600)
+        animate('600ms 2000ms')
       ]),
 
       // fade out when destroyed. this could also be written as transition('void => *')
@@ -52,8 +53,10 @@ export class PlayComponent implements OnInit {
   constructor(private readonly gameService: GameService,
               private readonly errorService: ErrorService,
               route: ActivatedRoute,
-              private readonly auth: AngularFireAuth) {
+              private readonly auth: AngularFireAuth,
+              private readonly noiseService: NoiseService) {
     this.gameId = route.snapshot.paramMap.get('game_id');
+    this.noiseService.enable(this.gameId);
     this.gameService.subscribeToGame(this.gameId, this.game);
     this.players = this.game.pipe(takeUntil(this.destroyed),
         map(game => ellipse(game?.playerList || [], 400, 250, 5)));
