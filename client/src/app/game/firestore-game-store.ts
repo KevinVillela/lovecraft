@@ -1,6 +1,6 @@
 import {Injectable} from '@angular/core';
 import {Card, Game, GameId, GameOptions, GameState, Player, PlayerId} from '../../../../game/models/models';
-import {map, take} from 'rxjs/operators';
+import {distinctUntilChanged, map, take} from 'rxjs/operators';
 import {AngularFirestore, AngularFirestoreCollection} from '@angular/fire/firestore';
 import {BehaviorSubject, Observable, Observer} from 'rxjs';
 import * as firebase from 'firebase';
@@ -84,11 +84,12 @@ export class FirestoreGameStore implements GameStore {
 
   gameForId(gameId: string): Observable<Game | null> {
     return this.gamesSync.pipe(map(value => {
-      if (value[gameId]) {
-        return value[gameId];
-      }
-      return null;
-    }));
+          if (value[gameId]) {
+            return value[gameId];
+          }
+          return null;
+        }),
+        distinctUntilChanged(deepEquality));
   }
 
   setGameForId(gameId: string, game: Game): Promise<void> {
@@ -117,7 +118,9 @@ export class FirestoreGameStore implements GameStore {
   }
 }
 
-
-function getGameCopy(game: Game): Game {
-  return JSON.parse(JSON.stringify(game));
+/**
+ * Compares the contents of two things using deep equality.
+ */
+function deepEquality<T>(x: T, y: T) {
+  return JSON.stringify(x) == JSON.stringify(y);
 }

@@ -6,7 +6,7 @@ import {dealCardsToPlayers} from './utilities';
 /**
  * Updates the store given a PlayCard action.
  */
-export function onPlayCard(game: Game|undefined, action: PlayCard) {
+export function onPlayCard(game: Game | undefined, action: PlayCard) {
   if (!game) {
     throw new Error(`No game ${action.gameId} exists.`);
   }
@@ -176,6 +176,11 @@ function handleMirage(game: Game) {
     game.visibleCards[i] = Card.MIRAGE;
     game.visibleCards.pop();
     break;
+  }
+
+  if (game.round === 4) {
+    // You've made a grave mistake by trusting the wrong person!
+    game.state = GameState.CULTISTS_WON;
   }
 }
 

@@ -106,10 +106,9 @@ function getSource(noise: SoundType) {
       return SOUNDS.SUCCESS;
     case Card.CTHULHU:
       return SOUNDS.LAUGH;
-    case Card.INSANITYS_GRASP:
-      return SOUNDS.SHUSH;
     case Card.PRIVATE_EYE:
       return SOUNDS.HMM;
+    case Card.INSANITYS_GRASP:
     case Card.EVIL_PRESENCE:
     case Card.MIRAGE:
     case Card.PARANOIA:
@@ -128,7 +127,6 @@ export enum SOUNDS {
   ROCK = 'assets/rock.mp3',
   SUCCESS = 'assets/success.mp3',
   LAUGH = 'assets/laugh.mp3',
-  SHUSH = 'assets/shush.mp3',
   HMM = 'assets/hmm.mp3',
   SPECIAL = 'assets/special.mp3'
 };

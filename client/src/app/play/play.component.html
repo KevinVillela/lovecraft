@@ -1,6 +1,4 @@
 <div class="game">
-  <div class="status">Round {{game.value?.round}}</div>
-
   <div class="circle" id="circle">
     <div *ngFor="let player of (players | async); trackBy: trackByIndex" class="player"
          [class.highlight]="game.value?.currentInvestigatorId === player.player.id"
@@ -36,6 +34,18 @@
 </div>
 
 <div class="visible-cards">
+  <div class="state" *ngIf="gameStatus | async; let status" [@simpleFadeAnimation]="'in'">
+    <span class="round">Round {{status.round}}</span>
+    <span class="picked-remaining">Remaining picks this round: {{status.roundRemaining}}</span>
+    <span class="cultists">
+      Cultists: {{status.minCultists}}
+      <ng-container
+          *ngIf="status.minCultists !== status.maxCultists">- {{status.maxCultists}}</ng-container>
+    </span>
+    <span class="elder-signs">Elder Signs Picked: {{status.elderSignsPicked}}
+      / {{status.elderSignsTotal}}</span>
+    <span class="mirage-picked">Mirage picked: {{status.miragePicked ? 'Yes' : 'No'}}</span>
+  </div>
   <div *ngFor="let cardRound of (cardRounds | async); trackBy: trackByIndex;"
        class="visible-cards-round">
     <div *ngFor="let card of cardRound; trackBy: trackByIndex;" class="card"

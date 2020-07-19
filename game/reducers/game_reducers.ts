@@ -251,7 +251,7 @@ interface PlayerSetup {
 /**
  * The initial player setups for different numbers of players.
  */
-const PLAYER_SETUPS: Record<number, PlayerSetup> = {
+export const PLAYER_SETUPS: Record<number, PlayerSetup> = {
   2: {investigators: 1, cultists: 1, elderSigns: 2},
   3: {investigators: 2, cultists: 1, elderSigns: 3},
   4: {investigators: 3, cultists: 2, elderSigns: 4},

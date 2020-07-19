@@ -4,11 +4,23 @@ import {ActivatedRoute} from '@angular/router';
 import {Card, Game, GameId, GameState, Player, PlayerId, Role} from '../../../../game/models/models';
 import {GameService} from '../game/game.service';
 import {initial, isError, loading, StatusAnd} from '../common/status_and';
-import {map, takeUntil} from 'rxjs/operators';
+import {delay, map, takeUntil} from 'rxjs/operators';
 import {ErrorService} from '../common/error.service';
 import {AngularFireAuth} from '@angular/fire/auth';
 import {animate, state, style, transition, trigger} from '@angular/animations';
 import {NoiseService} from '../app/play/noise.service';
+import {PLAYER_SETUPS} from '../../../../game/reducers/game_reducers';
+
+/** Status of the current game in a form that is easier for the UI to consume. */
+interface GameStatus {
+  round: number;
+  roundRemaining: number;
+  minCultists: number;
+  maxCultists: number;
+  elderSignsPicked: number;
+  elderSignsTotal: number;
+  miragePicked: boolean;
+}
 
 @Component({
   selector: 'app-play',
@@ -34,7 +46,6 @@ import {NoiseService} from '../app/play/noise.service';
   ]
 })
 export class PlayComponent implements OnInit {
-
   investigateStatus: StatusAnd<void> = initial();
   game = new BehaviorSubject<Game | null>(null);
   /** The card that is currently being viewed. */
@@ -47,6 +58,8 @@ export class PlayComponent implements OnInit {
 
   readonly players: Observable<CirclePlayer[]>;
   readonly cardRounds: Observable<Card[][]>;
+  readonly gameStatus: Observable<GameStatus>;
+
   /** The player that this client belongs to. */
   private currentPlayer?: Player;
 
@@ -74,6 +87,9 @@ export class PlayComponent implements OnInit {
       }
       return rounds;
     }));
+    this.gameStatus = this.game.pipe(takeUntil(this.destroyed),
+        map((game) => this.getGameStatus(game)),
+        delay(2000))
   }
 
   ngOnInit(): void {
@@ -220,6 +236,42 @@ export class PlayComponent implements OnInit {
       }
     });
   }
+
+  /** Gets the current status of the game, in a way that the UI can comprehend it. */
+  private getGameStatus(game: Game | null) {
+    if (!game) {
+      return null;
+    }
+    const numPlayers = game.playerList.length;
+    const setup = PLAYER_SETUPS[numPlayers];
+    const cardsPicked = game.visibleCards.length % numPlayers;
+    const elderSignsPicked = game.visibleCards.filter(card => card === Card.ELDER_SIGN).length;
+    return {
+      round: game.round,
+      roundRemaining: numPlayers - cardsPicked,
+      elderSignsPicked,
+      elderSignsTotal: setup.elderSigns,
+      miragePicked: !!game.visibleCards.filter(card => card === Card.MIRAGE).length,
+      minCultists: setup.cultists + setup.investigators !== numPlayers ? setup.cultists - 1 : setup.cultists,
+      maxCultists: setup.cultists,
+    };
+  }
+
+  /** Gets a user-readable string for how many cultists could be in the game. */
+  getNumCultists() {
+    const numPlayers = this.game?.value?.playerList?.length;
+    const setup = PLAYER_SETUPS[numPlayers];
+    if (!numPlayers || !setup) {
+      return '';
+    }
+
+    if (setup.cultists + setup.investigators === numPlayers) {
+      return setup.cultists;
+    }
+
+    return `${setup.cultists - 1} - ${setup.cultists}`;
+  }
+
 
   ngOnDestroy(): void {
     // Unsubscribes all pending subscriptions.

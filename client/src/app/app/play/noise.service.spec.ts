@@ -7,7 +7,7 @@ import {GameService} from '../../game/game.service';
 import {GameBuilder} from '../../../../../game/testing/test_utils';
 import {GameState} from '../../../../../game/models/models';
 
-fdescribe('NoiseService', () => {
+describe('NoiseService', () => {
   let service: FakeNoiseService;
   let gameService: GameService;
 

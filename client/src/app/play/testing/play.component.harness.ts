@@ -9,6 +9,11 @@ export class PlayComponentHarness extends ComponentHarness {
   private readonly roleCards = this.locatorForAll('div.role img');
   private readonly playCards = this.locatorForAll('div.play img');
   private readonly pickedCards = this.locatorForAll(CardHarness.with({ancestor: '.visible-cards-round'}));
+  private readonly round = this.locatorFor('.round');
+  private readonly cultists = this.locatorFor('.cultists');
+  private readonly remaining = this.locatorFor('.picked-remaining');
+  private readonly elderPicked = this.locatorFor('.elder-signs');
+  private readonly mirage = this.locatorFor('.mirage-picked');
 
   async getPlayCards(): Promise<any[]> {
     const playCards = await this.playCards();
@@ -73,6 +78,31 @@ export class PlayComponentHarness extends ComponentHarness {
    */
   async pickedCard(cardIndex: number) {
     return (await this.pickedCards())[cardIndex];
+  }
+
+  async getCultists() {
+    const cultists = await this.cultists();
+    return cultists.text();
+  }
+
+  async getRound() {
+    const round = await this.round();
+    return round.text();
+  }
+
+  async getRemaining() {
+    const remaining = await this.remaining();
+    return remaining.text();
+  }
+
+  async elderSignedPicked() {
+    const elderPicked = await this.elderPicked();
+    return elderPicked.text();
+  }
+
+  async miragePicked() {
+    const miragePicked = await this.mirage();
+    return miragePicked.text();
   }
 }
 

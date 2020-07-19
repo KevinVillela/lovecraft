@@ -57,9 +57,22 @@ describe('playCard', () => {
           },
           'R');
       playCard(game, 'p1', 1);
+
       expect(game.visibleCards).toEqual([
         Card.FUTILE_INVESTIGATION, Card.MIRAGE
       ]);
+      expect(game.state).toEqual(GameState.IN_PROGRESS);
+    });
+
+    it('triggers end of game if mirage is picked on last round', () => {
+      const game = makeGame(
+          '', 4, {
+            'p2': 'RR',
+            'p1': 'MR',
+          },
+          'RRRRRR');
+      playCard(game, 'p1', 1);
+      expect(game.state).toEqual(GameState.CULTISTS_WON);
     });
 
     it('replaces a light if there are some', () => {

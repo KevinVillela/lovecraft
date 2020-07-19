@@ -1,4 +1,4 @@
-import {async, ComponentFixture, TestBed} from '@angular/core/testing';
+import {async, ComponentFixture, fakeAsync, TestBed, tick} from '@angular/core/testing';
 
 import {CardImage, PlayComponent} from './play.component';
 import {PlayModule} from './play.module';
@@ -134,6 +134,52 @@ describe('PlayComponent', () => {
     await harness.pickCardFromPlayer('p2@google.com', 4);
     expect(await harness.roleForPlayer('p2@google.com')).toEqual(CardImage.CULTIST);
   });
+
+  it('should display game status', fakeAsync(async () => {
+    await gameService.forceGameState(makeGame(
+        'gameThread', 1, {
+          'villela@google.com': 'RRRRR',
+          'p2@google.com': 'RRRRS',
+          'p3@google.com': 'RRRRR',
+        },
+        ''));
+    tick(2000);
+    fixture.detectChanges();
+
+    expect(await harness.getRound()).toEqual('Round 1');
+    expect(await harness.getCultists()).toEqual('Cultists: 1');
+    expect(await harness.getRemaining()).toEqual('Remaining picks this round: 3');
+    expect(await harness.elderSignedPicked()).toEqual('Elder Signs Picked: 0 / 3');
+
+    await harness.pickCardFromPlayer('p2@google.com', 4);
+    expect(await harness.getRemaining()).toEqual('Remaining picks this round: 2');
+    expect(await harness.elderSignedPicked()).toEqual('Elder Signs Picked: 1 / 2');
+
+    // WARNING: This test fails...
+  }));
+
+  it('should display game status in later round', fakeAsync(async () => {
+    await gameService.forceGameState(makeGame(
+        'gameThread', 2, {
+          'villela@google.com': 'RRRR',
+          'p2@google.com': 'RRRM',
+          'p3@google.com': 'RRRI',
+          'p4@google.com': 'RRRR',
+        },
+        ''));
+    fixture.detectChanges();
+
+    expect(await harness.getRound()).toEqual('Round 2');
+    expect(await harness.getCultists()).toEqual('Cultists: 1 - 2');
+    expect(await harness.getRemaining()).toEqual('Remaining picks this round: 4');
+    expect(await harness.miragePicked()).toEqual('Mirage picked: No');
+
+    await harness.pickCardFromPlayer('p2@google.com', 3);
+    expect(await harness.getRemaining()).toEqual('Remaining picks this round: 3');
+    expect(await harness.miragePicked()).toEqual('Mirage picked: Yes');
+
+    // WARNING: This test fails...
+  }));
 });
 
 /**
