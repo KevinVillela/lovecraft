@@ -1,13 +1,13 @@
 :host {
   display: flex;
-  justify-content: center;
   flex-direction: row;
-  align-items: center;
 }
 
 .game {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  flex: 1;
+  min-width: 600px;
 
   .status {
     color: white;
@@ -19,9 +19,11 @@
 }
 
 .circle {
-  width: 1000px;
-  height: 600px;
+  flex: 1;
+  height: 90vh;
   position: relative;
+  border-radius: 50%;
+  margin-right: 4em;
 }
 
 .player {
@@ -82,7 +84,7 @@
 .visible-cards {
   display: flex;
   flex-direction: column;
-  width: 400px;
+  min-width: 400px;
   margin: 48px 0;
 
   .visible-cards-round {

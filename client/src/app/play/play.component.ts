@@ -1,5 +1,5 @@
-import {Component, OnInit} from '@angular/core';
-import {BehaviorSubject, combineLatest, Observable, ReplaySubject} from 'rxjs';
+import {AfterViewInit, Component, ElementRef, NgZone, ViewChild} from '@angular/core';
+import {BehaviorSubject, combineLatest, Observable, ReplaySubject, Subject} from 'rxjs';
 import {ActivatedRoute} from '@angular/router';
 import {Card, Game, GameId, GameState, Player, PlayerId, Role} from '../../../../game/models/models';
 import {GameService} from '../game/game.service';
@@ -10,6 +10,39 @@ import {AngularFireAuth} from '@angular/fire/auth';
 import {animate, state, style, transition, trigger} from '@angular/animations';
 import {NoiseService} from '../app/play/noise.service';
 import {PLAYER_SETUPS} from '../../../../game/reducers/game_reducers';
+
+// https://github.com/Microsoft/TypeScript/issues/28502
+interface Window {
+  ResizeObserver: typeof ResizeObserver;
+}
+
+interface ResizeObserverOptions {
+  box?: 'content-box' | 'border-box';
+}
+
+interface ResizeObserverSize {
+  inlineSize: number;
+  blockSize: number;
+}
+
+declare class ResizeObserver {
+  constructor(callback: ResizeObserverCallback);
+
+  disconnect(): void;
+
+  observe(target: Element, options?: ResizeObserverOptions): void;
+
+  unobserve(target: Element): void;
+}
+
+type ResizeObserverCallback = (entries: ReadonlyArray<ResizeObserverEntry>, observer: ResizeObserver) => void;
+
+interface ResizeObserverEntry {
+  readonly target: Element;
+  readonly contentRect: DOMRectReadOnly;
+  readonly borderBoxSize: ResizeObserverSize;
+  readonly contentBoxSize: ResizeObserverSize;
+}
 
 /** Status of the current game in a form that is easier for the UI to consume. */
 interface GameStatus {
@@ -45,7 +78,7 @@ interface GameStatus {
     ])
   ]
 })
-export class PlayComponent implements OnInit {
+export class PlayComponent implements AfterViewInit {
   investigateStatus: StatusAnd<void> = initial();
   game = new BehaviorSubject<Game | null>(null);
   /** The card that is currently being viewed. */
@@ -56,26 +89,26 @@ export class PlayComponent implements OnInit {
   /** Handle on-destroy Subject, used to unsubscribe. */
   private readonly destroyed = new ReplaySubject<void>(1);
 
-  readonly players: Observable<CirclePlayer[]>;
+  players: Observable<CirclePlayer[]>;
   readonly cardRounds: Observable<Card[][]>;
   readonly gameStatus: Observable<GameStatus>;
 
   /** The player that this client belongs to. */
   private currentPlayer?: Player;
+  /** The circle of players. */
+  @ViewChild('circle') private playerCircle: ElementRef;
+  /** Listens to resize events on the player circle. */
+  private resizeObserver?: ResizeObserver;
 
   constructor(private readonly gameService: GameService,
               private readonly errorService: ErrorService,
               route: ActivatedRoute,
               private readonly auth: AngularFireAuth,
-              private readonly noiseService: NoiseService) {
+              private readonly noiseService: NoiseService,
+              private readonly zone: NgZone) {
     this.gameId = route.snapshot.paramMap.get('game_id');
     this.noiseService.enable(this.gameId);
     this.gameService.subscribeToGame(this.gameId, this.game);
-    this.players = this.game.pipe(takeUntil(this.destroyed),
-        map(game => ellipse(game?.playerList || [], 400, 250, 5)));
-    combineLatest([this.players, this.auth.user]).pipe(takeUntil(this.destroyed)).subscribe(([players, user]) => {
-      this.currentPlayer = players.find((player) => player.player.id === user.displayName)?.player;
-    });
     this.cardRounds = this.game.pipe(map(value => {
       if (!value) {
         return [];
@@ -92,7 +125,23 @@ export class PlayComponent implements OnInit {
         delay(2000))
   }
 
-  ngOnInit(): void {
+  ngAfterViewInit(): void {
+    const onResize = new Subject<ResizeObserverEntry[]>();
+    this.resizeObserver = new ResizeObserver((entries: ResizeObserverEntry[]) => {
+      this.zone.run(() => {
+        onResize.next(entries);
+      });
+    });
+    this.resizeObserver.observe(this.playerCircle.nativeElement);
+
+    this.players = combineLatest([this.game, onResize]).pipe(takeUntil(this.destroyed),
+        map(([game, entries]) => {
+          const size = entries[0].contentRect;
+          return ellipse(game?.playerList || [], size.width / 2 - 100, size.height / 2 - 50, 0);
+        }));
+    combineLatest([this.players, this.auth.user]).pipe(takeUntil(this.destroyed)).subscribe(([players, user]) => {
+      this.currentPlayer = players.find((player) => player.player.id === user.displayName)?.player;
+    });
   }
 
   /** Magnifies or unmagnifies the given card. */
@@ -277,6 +326,10 @@ export class PlayComponent implements OnInit {
     // Unsubscribes all pending subscriptions.
     this.destroyed.next();
     this.destroyed.complete();
+
+    if (this.resizeObserver) {
+      this.resizeObserver.disconnect();
+    }
   }
 }
 

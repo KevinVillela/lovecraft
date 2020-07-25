@@ -1,10 +1,10 @@
 <div class="game">
-  <div class="circle" id="circle">
+  <div #circle class="circle" id="circle">
     <div *ngFor="let player of (players | async); trackBy: trackByIndex" class="player"
          [class.highlight]="game.value?.currentInvestigatorId === player.player.id"
          [style.top.px]="player.top"
          [style.left.px]="player.left">
-    <span class="player-name">
+      <span class="player-name">
       <div class="card role"
            [matTooltip]="tooltipForRole(player.player.role, player.player)">
       <img [src]="imageForRole(player.player.role, player.player)">
