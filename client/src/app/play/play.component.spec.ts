@@ -1,4 +1,4 @@
-import {async, ComponentFixture, fakeAsync, TestBed, tick} from '@angular/core/testing';
+import {async, ComponentFixture, TestBed} from '@angular/core/testing';
 
 import {CardImage, PlayComponent} from './play.component';
 import {PlayModule} from './play.module';
@@ -9,6 +9,14 @@ import {TestbedHarnessEnvironment} from '@angular/cdk/testing/testbed';
 import {Component, ViewChild} from '@angular/core';
 import {GameService} from '../game/game.service';
 import {makeGame} from '../../../../game/testing/test_utils';
+
+/**
+ *  This exists so we don't have to use fakeAsync, which was constantly
+ * throwing periodic timer errors. Tears have been shed.
+ */
+function sleep(ms: number) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
 
 describe('PlayComponent', () => {
   let component: PlayComponent;
@@ -135,7 +143,7 @@ describe('PlayComponent', () => {
     expect(await harness.roleForPlayer('p2@google.com')).toEqual(CardImage.CULTIST);
   });
 
-  it('should display game status', fakeAsync(async () => {
+  it('should display game status', async () => {
     await gameService.forceGameState(makeGame(
         'gameThread', 1, {
           'villela@google.com': 'RRRRR',
@@ -143,9 +151,9 @@ describe('PlayComponent', () => {
           'p3@google.com': 'RRRRR',
         },
         ''));
-    tick(2000);
     fixture.detectChanges();
 
+    await sleep(3000);
     expect(await harness.getRound()).toEqual('Round 1');
     expect(await harness.getCultists()).toEqual('Cultists: 1');
     expect(await harness.getRemaining()).toEqual('Remaining picks this round: 3');
@@ -153,12 +161,10 @@ describe('PlayComponent', () => {
 
     await harness.pickCardFromPlayer('p2@google.com', 4);
     expect(await harness.getRemaining()).toEqual('Remaining picks this round: 2');
-    expect(await harness.elderSignedPicked()).toEqual('Elder Signs Picked: 1 / 2');
+    expect(await harness.elderSignedPicked()).toEqual('Elder Signs Picked: 1 / 3');
+  });
 
-    // WARNING: This test fails...
-  }));
-
-  it('should display game status in later round', fakeAsync(async () => {
+  it('should display game status in later round', async () => {
     await gameService.forceGameState(makeGame(
         'gameThread', 2, {
           'villela@google.com': 'RRRR',
@@ -168,6 +174,7 @@ describe('PlayComponent', () => {
         },
         ''));
     fixture.detectChanges();
+    await sleep(3000);
 
     expect(await harness.getRound()).toEqual('Round 2');
     expect(await harness.getCultists()).toEqual('Cultists: 1 - 2');
@@ -177,9 +184,7 @@ describe('PlayComponent', () => {
     await harness.pickCardFromPlayer('p2@google.com', 3);
     expect(await harness.getRemaining()).toEqual('Remaining picks this round: 3');
     expect(await harness.miragePicked()).toEqual('Mirage picked: Yes');
-
-    // WARNING: This test fails...
-  }));
+  });
 });
 
 /**

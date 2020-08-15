@@ -1,10 +1,10 @@
-import {AfterViewInit, Component, ElementRef, NgZone, ViewChild} from '@angular/core';
+import {AfterViewInit, ChangeDetectorRef, Component, ElementRef, NgZone, ViewChild} from '@angular/core';
 import {BehaviorSubject, combineLatest, Observable, ReplaySubject, Subject} from 'rxjs';
 import {ActivatedRoute} from '@angular/router';
 import {Card, Game, GameId, GameState, Player, PlayerId, Role} from '../../../../game/models/models';
 import {GameService} from '../game/game.service';
 import {initial, isError, loading, StatusAnd} from '../common/status_and';
-import {delay, map, takeUntil} from 'rxjs/operators';
+import {delay, map, startWith, takeUntil, tap} from 'rxjs/operators';
 import {ErrorService} from '../common/error.service';
 import {AngularFireAuth} from '@angular/fire/auth';
 import {animate, state, style, transition, trigger} from '@angular/animations';
@@ -105,7 +105,8 @@ export class PlayComponent implements AfterViewInit {
               route: ActivatedRoute,
               private readonly auth: AngularFireAuth,
               private readonly noiseService: NoiseService,
-              private readonly zone: NgZone) {
+              private readonly zone: NgZone,
+              private readonly changeDetectorRef: ChangeDetectorRef) {
     this.gameId = route.snapshot.paramMap.get('game_id');
     this.noiseService.enable(this.gameId);
     this.gameService.subscribeToGame(this.gameId, this.game);
@@ -134,7 +135,12 @@ export class PlayComponent implements AfterViewInit {
     });
     this.resizeObserver.observe(this.playerCircle.nativeElement);
 
-    this.players = combineLatest([this.game, onResize]).pipe(takeUntil(this.destroyed),
+    this.players = combineLatest([this.game,
+      onResize.pipe(startWith([{contentRect: this.playerCircle.nativeElement.getBoundingClientRect()}]))
+    ]).pipe(takeUntil(this.destroyed),
+        tap((players) => {
+          this.changeDetectorRef.detectChanges();
+        }),
         map(([game, entries]) => {
           const size = entries[0].contentRect;
           return ellipse(game?.playerList || [], size.width / 2 - 100, size.height / 2 - 50, 0);
