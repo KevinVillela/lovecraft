@@ -13,7 +13,7 @@
       Special cards?
     </mat-checkbox>
 
-    <mat-checkbox [ngModel]="(game | async)?.options?.cthulhuCount > 0"
+    <mat-checkbox [ngModel]="(game | async)?.options?.cthulhuCount > 1"
                   (ngModelChange)="updateCthulhus($event)">
       2 Cthulhus?
     </mat-checkbox>

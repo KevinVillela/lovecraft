@@ -12,7 +12,7 @@ interface FirestoreGame {
   round: number;
 
   /** The list of players. */
-  playerList: Player[];
+  playerList: Player[]; // This should be typed
 
   /** The current investigator. */
   currentInvestigatorId?: string;
@@ -93,10 +93,11 @@ export class FirestoreGameStore implements GameStore {
   }
 
   setGameForId(gameId: string, game: Game): Promise<void> {
+    // Not sure what to type the playerList as...
     const firestoreGame: FirestoreGame = {
       created: firebase.firestore.Timestamp.fromDate(game.created),
       currentInvestigatorId: game.currentInvestigatorId,
-      playerList: game.playerList,
+      playerList: firebase.firestore.FieldValue.arrayUnion(...(game.playerList || [])) as unknown as Player[],
       round: game.round,
       state: game.state,
       visibleCards: game.visibleCards,
@@ -106,7 +107,7 @@ export class FirestoreGameStore implements GameStore {
     };
     // Firestore doesn't like undefined...
     Object.keys(firestoreGame).forEach(key => firestoreGame[key] === undefined ? delete firestoreGame[key] : {});
-    return this.games.doc<FirestoreGame>(gameId).set(firestoreGame);
+    return this.games.doc<FirestoreGame>(gameId).set(firestoreGame, {merge: true});
   }
 
   notify(gameId: string): void {
