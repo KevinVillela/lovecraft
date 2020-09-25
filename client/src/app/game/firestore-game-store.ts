@@ -5,6 +5,7 @@ import {AngularFirestore, AngularFirestoreCollection} from '@angular/fire/firest
 import {BehaviorSubject, Observable, Observer} from 'rxjs';
 import * as firebase from 'firebase';
 import {GameReducer, GameStore} from '../../../../game/facade/game_store';
+import FieldValue = firebase.firestore.FieldValue;
 
 /** The interface for the data store in FireStore. */
 interface FirestoreGame {
@@ -12,7 +13,7 @@ interface FirestoreGame {
   round: number;
 
   /** The list of players. */
-  playerList: Player[]; // This should be typed
+  playerList: Player[];
 
   /** The current investigator. */
   currentInvestigatorId?: string;
@@ -92,12 +93,17 @@ export class FirestoreGameStore implements GameStore {
         distinctUntilChanged(deepEquality));
   }
 
+  addPlayerToGame(gameId: string, player: Player) {
+    this.games.doc(gameId).update({
+      playerList: FieldValue.arrayUnion(player),
+    })
+  }
+
   setGameForId(gameId: string, game: Game): Promise<void> {
-    // Not sure what to type the playerList as...
     const firestoreGame: FirestoreGame = {
       created: firebase.firestore.Timestamp.fromDate(game.created),
       currentInvestigatorId: game.currentInvestigatorId,
-      playerList: firebase.firestore.FieldValue.arrayUnion(...(game.playerList || [])) as unknown as Player[],
+      playerList: game.playerList,
       round: game.round,
       state: game.state,
       visibleCards: game.visibleCards,
@@ -107,7 +113,7 @@ export class FirestoreGameStore implements GameStore {
     };
     // Firestore doesn't like undefined...
     Object.keys(firestoreGame).forEach(key => firestoreGame[key] === undefined ? delete firestoreGame[key] : {});
-    return this.games.doc<FirestoreGame>(gameId).set(firestoreGame, {merge: true});
+    return this.games.doc<FirestoreGame>(gameId).set(firestoreGame);
   }
 
   notify(gameId: string): void {

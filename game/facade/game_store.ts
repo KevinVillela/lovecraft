@@ -1,6 +1,6 @@
 import {Observable} from 'rxjs';
 
-import {Game, GameId} from '../models/models';
+import {Game, GameId, Player} from '../models/models';
 
 /**
  * A function that takes in a game and returns a new version of the game.
@@ -21,6 +21,12 @@ export interface GameStore {
    * TODO(dotaguro): Change the name to subscribeToGame().
    */
   gameForId(gameId: GameId): Observable<Game>;
+
+  /**
+   * Adds a plaer to the game a game. This is semi-synchronous and if game state has
+   * changed should trigger updates to all subscribers listening to this game.
+   */
+  addPlayerToGame(gameId: GameId, player: Player);
 
   /**
    * Sets the state of a game. This is semi-synchronous and if game state has
