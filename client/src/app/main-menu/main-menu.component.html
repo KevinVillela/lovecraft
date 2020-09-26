@@ -1,15 +1,19 @@
 <div class="container">
+  <span class="header">
+  <a mat-stroked-button color="accent" routerLink="about">
+    How do I play?
+  </a>
   <button mat-raised-button color="primary" (click)="createGame()">
     Create Game
   </button>
-
+</span>
   <mat-selection-list [multiple]="false">
     <mat-list-option *ngFor="let game of allGames | keyvalue | orderByDate"
                      (click)="joinGame(game.key)">
       <div mat-line>
         {{game.key}}
         <ng-container *ngIf="game.value.playerList.length">
-          - {{game.value.playerList.length}} here now
+          - {{game.value.playerList.length}} players
         </ng-container>
       </div>
       <div mat-line>Created {{game.value.created | date:'medium'}}</div>

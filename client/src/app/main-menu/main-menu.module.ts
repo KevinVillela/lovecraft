@@ -9,13 +9,14 @@ import {MatInputModule} from '@angular/material/input';
 import {MatFormFieldModule} from '@angular/material/form-field';
 import {FormsModule} from '@angular/forms';
 import { OrderByDatePipe } from './order-by-date.pipe';
+import {RouterModule} from '@angular/router';
 
 
 @NgModule({
   declarations: [MainMenuComponent, OrderByDatePipe],
   exports: [MainMenuComponent],
   imports: [
-    CommonModule, MatSnackBarModule, MatButtonModule, MatListModule, MatOptionModule, MatInputModule, MatFormFieldModule, FormsModule
+    CommonModule, MatSnackBarModule, MatButtonModule, MatListModule, MatOptionModule, MatInputModule, MatFormFieldModule, FormsModule, RouterModule
   ],
 })
 export class MainMenuModule {
