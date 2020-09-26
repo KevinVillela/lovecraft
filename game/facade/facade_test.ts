@@ -60,10 +60,10 @@ describe('Facade', () => {
 
     it('does not allow more than max players', async () => {
       await facade.createGame('game1', 'player1');
-      for (let i = 0; i < 12; i++) {
+      for (let i = 0; i < 14; i++) {
         await facade.joinGame('game1', `player2${i + 1}`);
       }
-      await expectAsync(facade.startGame('game1')).toBeRejectedWithError(/2-11/);
+      await expectAsync(facade.startGame('game1')).toBeRejectedWithError(/2-13/);
     });
 
     it('rejects if the game does not exist.', async () => {

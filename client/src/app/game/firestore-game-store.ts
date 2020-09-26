@@ -1,11 +1,10 @@
 import {Injectable} from '@angular/core';
 import {Card, Game, GameId, GameOptions, GameState, Player, PlayerId} from '../../../../game/models/models';
-import {distinctUntilChanged, map, take} from 'rxjs/operators';
-import {AngularFirestore, AngularFirestoreCollection} from '@angular/fire/firestore';
+import {distinctUntilChanged, map} from 'rxjs/operators';
+import {AngularFirestore, AngularFirestoreCollection, QueryDocumentSnapshot} from '@angular/fire/firestore';
 import {BehaviorSubject, Observable, Observer} from 'rxjs';
 import * as firebase from 'firebase';
 import {GameReducer, GameStore} from '../../../../game/facade/game_store';
-import FieldValue = firebase.firestore.FieldValue;
 
 /** The interface for the data store in FireStore. */
 interface FirestoreGame {
@@ -37,6 +36,30 @@ interface FirestoreGame {
   options?: GameOptions;
 }
 
+function fromFirestoreGame(doc: QueryDocumentSnapshot<FirestoreGame>) {
+  return {
+    ...doc.data(),
+    id: doc.id,
+    created: doc.data().created.toDate(),
+    // Firestore is not a big fan of trying to write JS Classes, so we don't use History for now.
+    history: [],
+  };
+}
+
+function toFirestoreGame(game: Game): FirestoreGame {
+  return {
+    created: firebase.firestore.Timestamp.fromDate(game.created),
+    currentInvestigatorId: game.currentInvestigatorId,
+    playerList: game.playerList,
+    round: game.round,
+    state: game.state,
+    visibleCards: game.visibleCards,
+    discards: game.discards,
+    options: game.options,
+    paranoidPlayerId: game.paranoidPlayerId
+  };
+}
+
 /**
  * A GameStore that is powered by Firestore.
  */
@@ -51,20 +74,14 @@ export class FirestoreGameStore implements GameStore {
    */
   private readonly gamesSync = new BehaviorSubject<Record<GameId, Game>>({});
 
-  constructor(firestore: AngularFirestore) {
-    this.games = firestore.collection<FirestoreGame>('games');
-
+  constructor(private readonly angularFirestore: AngularFirestore) {
+    angularFirestore.firestore.settings({ignoreUndefinedProperties: true});
+    this.games = angularFirestore.collection<FirestoreGame>(angularFirestore.firestore.collection('games'));
     this.games.snapshotChanges().pipe(map(value => {
       const gamesMap: Record<string, Game> = {};
       for (const game of value) {
         const doc = game.payload.doc;
-        gamesMap[doc.id] = {
-          ...doc.data(),
-          id: doc.id,
-          created: doc.data().created.toDate(),
-          // Firestore is not a big fan of trying to write JS Classes, so we don't use History for now.
-          history: [],
-        };
+        gamesMap[doc.id] = fromFirestoreGame(doc);
       }
       return gamesMap;
     })).subscribe(this.gamesSync);
@@ -75,12 +92,14 @@ export class FirestoreGameStore implements GameStore {
   }
 
   applyTo(gameId: GameId, reducer: GameReducer): Promise<void> {
-    // I feel like there's something not right here, but I can't test it to
-    // see what's funky.
-    return this.gameForId(gameId).pipe(take(1), map(game => {
-      const newGame = reducer(game);
-      this.setGameForId(gameId, newGame);
-    })).toPromise();
+    const gameRef = this.games.doc(gameId);
+    return this.angularFirestore.firestore.runTransaction((transaction => {
+      return transaction.get(gameRef.ref).then(game => {
+        const doc = game as firebase.firestore.QueryDocumentSnapshot<FirestoreGame>;
+        const newGame: Game = reducer(doc.data() ? fromFirestoreGame(doc) : undefined);
+        transaction.set(gameRef.ref, toFirestoreGame(newGame));
+      })
+    }));
   }
 
   gameForId(gameId: string): Observable<Game | null> {
@@ -93,27 +112,9 @@ export class FirestoreGameStore implements GameStore {
         distinctUntilChanged(deepEquality));
   }
 
-  addPlayerToGame(gameId: string, player: Player) {
-    this.games.doc(gameId).update({
-      playerList: FieldValue.arrayUnion(player),
-    })
-  }
-
   setGameForId(gameId: string, game: Game): Promise<void> {
-    const firestoreGame: FirestoreGame = {
-      created: firebase.firestore.Timestamp.fromDate(game.created),
-      currentInvestigatorId: game.currentInvestigatorId,
-      playerList: game.playerList,
-      round: game.round,
-      state: game.state,
-      visibleCards: game.visibleCards,
-      discards: game.discards,
-      options: game.options,
-      paranoidPlayerId: game.paranoidPlayerId
-    };
-    // Firestore doesn't like undefined...
-    Object.keys(firestoreGame).forEach(key => firestoreGame[key] === undefined ? delete firestoreGame[key] : {});
-    return this.games.doc<FirestoreGame>(gameId).set(firestoreGame);
+    // No-op
+    return Promise.resolve();
   }
 
   notify(gameId: string): void {

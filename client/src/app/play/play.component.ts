@@ -292,6 +292,24 @@ export class PlayComponent implements AfterViewInit {
     });
   }
 
+  getBradleyMessage(): string {
+    const game = this.game.getValue();
+    if (!game || (game.state !== GameState.CULTISTS_WON && game.state !== GameState.INVESTIGATORS_WON)) {
+      return '';
+    }
+    const bradley = game.playerList.find((player) => player.id === 'Bradley Moore');
+    if (!bradley) {
+      return '';
+    }
+    const bradleysTeam = bradley.role;
+    if (bradleysTeam === Role.CULTIST && game.state === GameState.CULTISTS_WON ||
+        bradleysTeam === Role.INVESTIGATOR && game.state === GameState.INVESTIGATORS_WON) {
+      return 'Bradley\'s team wins!!'
+    } else {
+      return 'Bradley\'s team loses :('
+    }
+  }
+
   /** Gets the current status of the game, in a way that the UI can comprehend it. */
   private getGameStatus(game: Game | null) {
     if (!game) {

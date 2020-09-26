@@ -9,7 +9,7 @@
            [matTooltip]="tooltipForRole(player.player.role, player.player)">
       <img [src]="imageForRole(player.player.role, player.player)">
      </div>
-      {{player.player.id}}
+        {{player.player.id}}
     </span>
       <div class="cards">
         <div *ngFor="let card of player.player.hand; trackBy: trackByIndex; index as i"
@@ -61,13 +61,18 @@
 <div class="end-container"
      [@simpleFadeAnimation]="'in'"
      *ngIf="game.value?.state === 'Cultists Win' || game.value?.state === 'Investigators Win'">
-  <ng-container *ngIf="game.value?.state === 'Cultists Win'">
-    <div class="animated intensifies ending">Cultists Win!!</div>
+  <ng-container *ngIf="getBradleyMessage(); else noBradley; let bradleyMessage">
+    <div class="animated intensifies ending">{{bradleyMessage}}</div>
   </ng-container>
+  <ng-template #noBradley>
+    <ng-container *ngIf="game.value?.state === 'Cultists Win'">
+      <div class="animated intensifies ending">Cultists Win!!</div>
+    </ng-container>
 
-  <ng-container *ngIf="game.value?.state === 'Investigators Win'">
-    <div class="animated shakeit ending">Investigators Win!!</div>
-  </ng-container>
+    <ng-container *ngIf="game.value?.state === 'Investigators Win'">
+      <div class="animated shakeit ending">Investigators Win!!</div>
+    </ng-container>
+  </ng-template>
   <button mat-flat-button matTooltip="Restart the game with the same players." (click)="restart()"
           color="primary">
     Restart?

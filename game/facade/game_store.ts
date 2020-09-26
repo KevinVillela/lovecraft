@@ -1,11 +1,11 @@
 import {Observable} from 'rxjs';
 
-import {Game, GameId, Player} from '../models/models';
+import {Game, GameId} from '../models/models';
 
 /**
  * A function that takes in a game and returns a new version of the game.
  */
-export type GameReducer = (game: Game|undefined) => Game;
+export type GameReducer = (game: Game | undefined) => Game;
 
 /**
  * A DAO for game state. All actions here are asynchronous; callers that care
@@ -23,12 +23,6 @@ export interface GameStore {
   gameForId(gameId: GameId): Observable<Game>;
 
   /**
-   * Adds a plaer to the game a game. This is semi-synchronous and if game state has
-   * changed should trigger updates to all subscribers listening to this game.
-   */
-  addPlayerToGame(gameId: GameId, player: Player);
-
-  /**
    * Sets the state of a game. This is semi-synchronous and if game state has
    * changed should trigger updates to all subscribers listening to this game.
    */
@@ -39,7 +33,7 @@ export interface GameStore {
    * the store in place of the old version. If the game doesn't exist yet, the
    * reducer will get undefined, otherwise it's the old game.
    */
-  applyTo(gameId: GameId, reducer: GameReducer) : Promise<void>;
+  applyTo(gameId: GameId, reducer: GameReducer): Promise<void>;
 
   /**
    * Returns an observable consisting of all games.
