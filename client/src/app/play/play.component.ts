@@ -1,20 +1,15 @@
 import {AfterViewInit, ChangeDetectorRef, Component, ElementRef, NgZone, ViewChild} from '@angular/core';
-import {BehaviorSubject, combineLatest, Observable, ReplaySubject, Subject} from 'rxjs';
+import {BehaviorSubject, combineLatest, concat, Observable, of, ReplaySubject, Subject} from 'rxjs';
 import {ActivatedRoute} from '@angular/router';
 import {Card, Game, GameId, GameState, Player, PlayerId, Role} from '../../../../game/models/models';
 import {GameService} from '../game/game.service';
 import {initial, isError, loading, StatusAnd} from '../common/status_and';
-import {delay, map, startWith, takeUntil, tap} from 'rxjs/operators';
+import {delay, map, pairwise, startWith, switchMap, takeUntil, tap} from 'rxjs/operators';
 import {ErrorService} from '../common/error.service';
 import {AngularFireAuth} from '@angular/fire/auth';
 import {animate, state, style, transition, trigger} from '@angular/animations';
 import {NoiseService} from '../app/play/noise.service';
 import {PLAYER_SETUPS} from '../../../../game/reducers/game_reducers';
-
-// https://github.com/Microsoft/TypeScript/issues/28502
-interface Window {
-  ResizeObserver: typeof ResizeObserver;
-}
 
 interface ResizeObserverOptions {
   box?: 'content-box' | 'border-box';
@@ -69,7 +64,7 @@ interface GameStatus {
       // fade in when created. this could also be written as transition('void => *')
       transition(':enter', [
         style({opacity: 0}),
-        animate('600ms 2000ms')
+        animate('600ms')
       ]),
 
       // fade out when destroyed. this could also be written as transition('void => *')
@@ -109,7 +104,18 @@ export class PlayComponent implements AfterViewInit {
               private readonly changeDetectorRef: ChangeDetectorRef) {
     this.gameId = route.snapshot.paramMap.get('game_id');
     this.noiseService.enable(this.gameId);
-    this.gameService.subscribeToGame(this.gameId, this.game);
+    const rawGame = new BehaviorSubject<Game | null>(null);
+    this.gameService.subscribeToGame(this.gameId, rawGame);
+    rawGame.pipe(takeUntil(this.destroyed),
+        startWith(null),
+        pairwise(),
+        switchMap(([previousGame, currentGame]) => {
+          if (previousGame?.currentInvestigatorId === currentGame?.currentInvestigatorId) {
+            return of(currentGame);
+          }
+          return concat(of(onlyMoveFlashlight(previousGame, currentGame)), of(currentGame).pipe(delay(2000)));
+        })
+    ).subscribe(this.game);
     this.cardRounds = this.game.pipe(map(value => {
       if (!value) {
         return [];
@@ -122,8 +128,7 @@ export class PlayComponent implements AfterViewInit {
       return rounds;
     }));
     this.gameStatus = this.game.pipe(takeUntil(this.destroyed),
-        map((game) => this.getGameStatus(game)),
-        delay(2000))
+        map((game) => this.getGameStatus(game)))
   }
 
   ngAfterViewInit(): void {
@@ -396,3 +401,18 @@ export enum CardImage {
   PRIVATE_EYE = 'assets/private_eye.png',
   ROCK = 'assets/rock.png'
 }
+
+/** Only moves the flashlight from the current game to the previous game. */
+function onlyMoveFlashlight(previousGame: Game | null, currentGame: Game | null): Game {
+  if (previousGame === null) {
+    return null;
+  }
+  if (currentGame === null) {
+    return previousGame;
+  }
+  return {
+    ...previousGame,
+    currentInvestigatorId: currentGame.currentInvestigatorId,
+  };
+}
+

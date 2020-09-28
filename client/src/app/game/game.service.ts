@@ -50,8 +50,8 @@ export class GameService {
     return from(this.gameFacade.updateGameOptions(gameId, options)).pipe(take(1), wrap);
   }
 
-  subscribeToGame(gameId: GameId, observable: Observer<Game>) {
-    this.gameFacade.subscribeToGame(gameId, observable);
+  subscribeToGame(gameId: GameId, observer: Observer<Game>) {
+    this.gameFacade.subscribeToGame(gameId, observer);
   }
 
   startGame(gameId: GameId) {
