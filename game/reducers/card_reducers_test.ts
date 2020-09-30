@@ -77,7 +77,7 @@ describe('playCard', () => {
 
     it('replaces a light if there are some', () => {
       const game = makeGame(
-          '', 1, {
+          '', 3, {
             'p2': 'RRRR',
             'p1': 'MRRR',
           },
@@ -89,6 +89,9 @@ describe('playCard', () => {
         Card.MIRAGE,
         Card.FUTILE_INVESTIGATION,
       ]);
+      // Ensure the round doesn't get incremented
+      // (Test for https://github.com/KevinVillela/lovecraft/issues/14).
+      expect(game.round).toEqual(3);
     });
   });
 

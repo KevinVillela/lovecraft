@@ -204,9 +204,11 @@ function handlePotentialEndOfRound(game: Game): boolean {
     return false;
   }
 
-  // We're at the end of a round if the number of cards is a multiple of the
-  // number of players.
-  if (game.visibleCards.length % game.playerList.length !== 0) {
+  // We're at the end of a round if the number of cards is a equal to the number
+  // of players times the number of rounds. Note that we can't check that the
+  // number of cards is a multiple of the number of players because sometimes
+  // Mirage will make that happen twice.-
+  if (game.visibleCards.length !== game.playerList.length * game.round) {
     return false;
   }
 

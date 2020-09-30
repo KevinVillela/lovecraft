@@ -76,7 +76,9 @@ export class FirestoreGameStore implements GameStore {
 
   constructor(private readonly angularFirestore: AngularFirestore) {
     angularFirestore.firestore.settings({ignoreUndefinedProperties: true});
-    this.games = angularFirestore.collection<FirestoreGame>(angularFirestore.firestore.collection('games'));
+    const yesterday = new Date((new Date()).valueOf() - 1000 * 60 * 60 * 24);
+    this.games = angularFirestore.collection<FirestoreGame>('games',
+        ref => ref.where('created', '>=', yesterday));
     this.games.snapshotChanges().pipe(map(value => {
       const gamesMap: Record<string, Game> = {};
       for (const game of value) {
