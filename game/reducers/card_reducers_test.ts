@@ -61,7 +61,7 @@ describe('playCard', () => {
       expect(game.visibleCards).toEqual([
         Card.FUTILE_INVESTIGATION, Card.MIRAGE
       ]);
-      expect(game.state).toEqual(GameState.IN_PROGRESS);
+      expect(game.state).toEqual(GameState.PAUSED);
     });
 
     it('triggers end of game if mirage is picked on last round', () => {
@@ -121,8 +121,9 @@ describe('playCard', () => {
       expect(game.visibleCards).toEqual([
         Card.FUTILE_INVESTIGATION, Card.EVIL_PRESENCE
       ]);
-      expect(game.round).toEqual(2);
-      expect(game.discards).toEqual([]);
+      expect(game.state).toEqual(GameState.PAUSED);
+      expect(game.round).toEqual(1);
+      expect(game.discards).toEqual([Card.FUTILE_INVESTIGATION]);
     });
   });
 
@@ -156,7 +157,8 @@ describe('playCard', () => {
         Card.PARANOIA, Card.FUTILE_INVESTIGATION, Card.FUTILE_INVESTIGATION,
         Card.FUTILE_INVESTIGATION
       ]);
-      expect(game.round).toEqual(2);
+      expect(game.state).toEqual(GameState.PAUSED);
+      expect(game.round).toEqual(1);
     });
   });
 

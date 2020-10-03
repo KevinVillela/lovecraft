@@ -1,10 +1,10 @@
 import {Observable, Observer} from 'rxjs';
-import {map, switchMap, take, tap} from 'rxjs/operators';
+import {take} from 'rxjs/operators';
 
-import {ForceGameState, JoinGame, NewGame, PlayCard, RestartGame, SetInvestigator, StartGame, UpdateGameOptions} from '../actions/actions';
-import {Game, GameId, GameOptions, GameState, getPlayerOrDie, PlayerId} from '../models/models';
+import {ForceGameState, JoinGame, NewGame, NextRound, PlayCard, RestartGame, SetInvestigator, StartGame, UpdateGameOptions} from '../actions/actions';
+import {Game, GameId, GameOptions, PlayerId} from '../models/models';
 import {onPlayCard} from '../reducers/card_reducers';
-import {onForceGameState, onJoinGame, onNewGame, onRestartGame, onSetInvestigator, onStartGame, onUpdateGameOptions} from '../reducers/game_reducers';
+import {onForceGameState, onJoinGame, onNewGame, onNextRound, onRestartGame, onSetInvestigator, onStartGame, onUpdateGameOptions} from '../reducers/game_reducers';
 
 import {GameStore} from './game_store';
 
@@ -16,7 +16,8 @@ import {GameStore} from './game_store';
  * actions, let's just register reducers again instead of calling store.applyTo.
  */
 export class GameFacade {
-  constructor(private readonly store: GameStore) {}
+  constructor(private readonly store: GameStore) {
+  }
 
   /**
    * Starts a new game.
@@ -26,14 +27,16 @@ export class GameFacade {
     // Go ahead and create/replace the game.
     return this.store.applyTo(
         gameId,
-        (oldGame: Game) => {return onNewGame(
-            oldGame, new NewGame(gameId, gameOptions, playerId))});
+        (oldGame: Game) => {
+          return onNewGame(
+              oldGame, new NewGame(gameId, gameOptions, playerId))
+        });
   }
 
   /**
    * Adds a player to a game.
    */
-  joinGame(gameId: GameId, playerId: PlayerId) : Promise<void> {
+  joinGame(gameId: GameId, playerId: PlayerId): Promise<void> {
     return this.store.applyTo(gameId, (game: Game) => {
       return onJoinGame(game, new JoinGame(gameId, playerId));
     });
@@ -51,7 +54,7 @@ export class GameFacade {
   /**
    * Starts a game, setting up the first hand.
    */
-  startGame(gameId: GameId) : Promise<void> {
+  startGame(gameId: GameId): Promise<void> {
     return this.store.applyTo(gameId, (game: Game) => {
       return onStartGame(game, new StartGame(gameId));
     });
@@ -62,7 +65,7 @@ export class GameFacade {
    */
   investigate(
       gameId: GameId, sourcePlayerId: PlayerId, targetPlayerId: PlayerId,
-      cardNumber: number) : Promise<void> {
+      cardNumber: number): Promise<void> {
     return this.store.applyTo(gameId, (game: Game) => {
       return onPlayCard(
           game,
@@ -74,16 +77,27 @@ export class GameFacade {
    * Restarts the game with the same player list. This resets all other game
    * state.
    */
-  restartGame(gameId: GameId) : Promise<void> {
+  restartGame(gameId: GameId): Promise<void> {
     return this.store.applyTo(
         gameId,
-        (game: Game) => {return onRestartGame(game, new RestartGame(gameId))});
+        (game: Game) => {
+          return onRestartGame(game, new RestartGame(gameId))
+        });
+  }
+
+  /** Moves the game to the next round if it was paused. */
+  nextRound(gameId: GameId) {
+    return this.store.applyTo(
+        gameId,
+        (game: Game) => {
+          return onNextRound(game, new NextRound(gameId))
+        });
   }
 
   /**
    * Sets the investigator to a specific player. This is just for testing.
    */
-  setInvestigator(gameId: GameId, targetPlayerId: PlayerId) : Promise<void> {
+  setInvestigator(gameId: GameId, targetPlayerId: PlayerId): Promise<void> {
     return this.store.applyTo(gameId, (game: Game) => {
       return onSetInvestigator(
           game, new SetInvestigator(gameId, targetPlayerId));
@@ -113,7 +127,7 @@ export class GameFacade {
   /**
    * For testing. Forces game state to a specific value.
    */
-  forceGameState(game: Game) : Promise<void> {
+  forceGameState(game: Game): Promise<void> {
     return this.store.applyTo(game.id, (ignored: Game) => {
       return onForceGameState(game, new ForceGameState(game));
     });

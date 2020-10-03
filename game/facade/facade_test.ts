@@ -109,6 +109,55 @@ describe('Facade', () => {
     });
   });
 
+  describe('OnNextRound', () => {
+    it('goes to the next round when paused', async () => {
+      facade.forceGameState(makeGame(
+          '', 1, {'p0': 'RRRR', 'p1': 'RRRR', 'p2': 'RRRR'},
+          ''));
+      facade.setInvestigator('', 'p0');
+      facade.investigate('', 'p0', 'p1', 1);
+      facade.investigate('', 'p1', 'p0', 1);
+      facade.investigate('', 'p0', 'p1', 1);
+      let game = await facade.getGame('');
+
+      expect(game.state).toEqual(GameState.PAUSED);
+      expect(game.round).toEqual(1);
+      // p0 is missing one rock.
+      expect(game.playerList[0].hand).toEqual([
+        Card.FUTILE_INVESTIGATION, Card.FUTILE_INVESTIGATION, Card.FUTILE_INVESTIGATION
+      ]);
+      // p1 is missing two rocks.
+      expect(game.playerList[1].hand).toEqual([
+        Card.FUTILE_INVESTIGATION, Card.FUTILE_INVESTIGATION
+      ]);
+      // p2 has all their rocks.
+      expect(game.playerList[2].hand).toEqual([
+        Card.FUTILE_INVESTIGATION, Card.FUTILE_INVESTIGATION,
+        Card.FUTILE_INVESTIGATION, Card.FUTILE_INVESTIGATION
+      ]);
+
+      await facade.nextRound('');
+      game = await facade.getGame('');
+
+      expect(game.state).toEqual(GameState.IN_PROGRESS);
+      expect(game.round).toEqual(2);
+      // Everyone is back to 3 rocks.
+      expect(game.playerList[0].hand).toEqual([
+        Card.FUTILE_INVESTIGATION, Card.FUTILE_INVESTIGATION, Card.FUTILE_INVESTIGATION
+      ]);
+      expect(game.playerList[1].hand).toEqual([
+        Card.FUTILE_INVESTIGATION, Card.FUTILE_INVESTIGATION, Card.FUTILE_INVESTIGATION
+      ]);
+      expect(game.playerList[2].hand).toEqual([
+        Card.FUTILE_INVESTIGATION, Card.FUTILE_INVESTIGATION, Card.FUTILE_INVESTIGATION
+      ]);
+    });
+
+    it('rejects if the game does not exist.', async () => {
+      return expectAsync(facade.nextRound('game1')).toBeRejected();
+    });
+  });
+
   describe('Investigate', () => {
     it('sets the state correctly on an initial rock pick', async () => {
       facade.forceGameState(makeGame(
@@ -208,7 +257,7 @@ describe('Facade', () => {
       expect(game.state).toBe(GameState.INVESTIGATORS_WON);
     });
 
-    it('moves to the next round when we pick the last card', async () => {
+    it('moves to paused when we pick the last card', async () => {
       facade.forceGameState(makeGame(
           '', 1, {'p0': 'RRRRC', 'p1': 'RRRRR', 'p2': 'SSSSR', 'p3': 'RRRRR'},
           ''));
@@ -235,11 +284,11 @@ describe('Facade', () => {
       // The player is now the current investigator.
       expect(game.currentInvestigatorId).toEqual('p0');
 
-      // The game is in-progress still.
-      expect(game.state).toEqual(GameState.IN_PROGRESS);
+      // The game is paused.
+      expect(game.state).toEqual(GameState.PAUSED);
 
-      // And we're on the next round.
-      expect(game.round).toEqual(2);
+      // And we're still on the same round (until unpaused)
+      expect(game.round).toEqual(1);
     });
 
     it('ends the game if we finish the fourth round', async () => {

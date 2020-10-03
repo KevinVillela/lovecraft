@@ -181,7 +181,8 @@ export class PlayComponent implements AfterViewInit {
 
   /** Returns true if we can show the card to the current player. */
   shouldShowCard(player?: Player): boolean {
-    return player?.id === this.currentPlayer?.id || this.game.value.state !== GameState.IN_PROGRESS;
+    return player?.id === this.currentPlayer?.id ||
+        (this.game.value.state !== GameState.IN_PROGRESS && this.game.value.state !== GameState.PAUSED);
   }
 
   private shouldShowRoleCard(player: Player): boolean {
@@ -293,6 +294,19 @@ export class PlayComponent implements AfterViewInit {
     this.gameService.restartGame(this.game.value.id).pipe(takeUntil(this.destroyed)).subscribe((val) => {
       if (isError(val)) {
         this.errorService.displayError('Error restarting', val.error);
+      }
+    });
+  }
+
+  nextRound(): void {
+    const nolan = this.game.getValue()?.playerList?.find((player) => player.id === 'Nolan Kelly');
+    if (nolan) {
+      this.errorService.displayErrorMessage('As per the Tooltip\'s documentation, Nolan is not allowed to use the Next Round button.');
+      return;
+    }
+    this.gameService.nextRound(this.game.value.id).pipe(takeUntil(this.destroyed)).subscribe((val) => {
+      if (isError(val)) {
+        this.errorService.displayError('Error going to next round', val.error);
       }
     });
   }

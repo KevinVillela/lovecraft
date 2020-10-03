@@ -1,8 +1,6 @@
 import {PlayCard} from '../actions/actions';
 import {Card, Game, GameState, getPlayerOrDie, Player, PlayerId, SecretType} from '../models/models';
 
-import {dealCardsToPlayers} from './utilities';
-
 /**
  * Updates the store given a PlayCard action.
  */
@@ -207,7 +205,7 @@ function handlePotentialEndOfRound(game: Game): boolean {
   // We're at the end of a round if the number of cards is a equal to the number
   // of players times the number of rounds. Note that we can't check that the
   // number of cards is a multiple of the number of players because sometimes
-  // Mirage will make that happen twice.-
+  // Mirage will make that happen twice.
   if (game.visibleCards.length !== game.playerList.length * game.round) {
     return false;
   }
@@ -218,24 +216,10 @@ function handlePotentialEndOfRound(game: Game): boolean {
     return true;
   }
 
-  // If not, move on to the next round.
-  game.round++;
+  // If not, move on to the paused state in between rounds.
+  game.state = GameState.PAUSED;
 
   // Clear the paranoid player.
   game.paranoidPlayerId = undefined;
-
-  // Gather up cards from all players.
-  const remainingCards = [];
-  for (const player of game.playerList) {
-    remainingCards.push(...player.hand);
-    player.hand = [];
-  }
-
-  // As well as any discards caused by things like evil presence.
-  remainingCards.push(...game.discards);
-  game.discards = [];
-
-  // Now deal them back out.
-  dealCardsToPlayers(game.playerList, remainingCards);
   return true;
 }

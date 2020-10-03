@@ -11,7 +11,8 @@ export type GameId = string;
 /**
  * An entry in the history log.
  */
-export interface HistoryEntry {}
+export interface HistoryEntry {
+}
 
 /**
  * Options that can be provided to the game to configure it.
@@ -82,7 +83,7 @@ export interface Player {
 /**
  * Things a player knows because of cards they've played.
  */
-export type Secret = RoleSecret|CardSecret;
+export type Secret = RoleSecret | CardSecret;
 
 /**
  * Types of secrets.
@@ -139,6 +140,7 @@ export interface CardSecret {
 export enum GameState {
   NOT_STARTED = 'Not Started',
   IN_PROGRESS = 'In Progress',
+  PAUSED = 'Paused',
   INVESTIGATORS_WON = 'Investigators Win',
   CULTISTS_WON = 'Cultists Win',
 }

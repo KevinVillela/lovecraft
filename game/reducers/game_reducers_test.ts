@@ -1,8 +1,8 @@
-import {PlayCard, StartGame} from '../actions/actions';
-import {Card, Game, GameState, PlayerId, Role} from '../models/models';
+import {NextRound, StartGame} from '../actions/actions';
+import {Card, GameState} from '../models/models';
 import {makeGame} from '../testing/test_utils';
 
-import {onStartGame} from './game_reducers';
+import {onNextRound, onStartGame} from './game_reducers';
 
 describe('game reducers', () => {
   describe('on start game', () => {
@@ -44,7 +44,36 @@ describe('game reducers', () => {
       expect(countInArray(allCards, Card.ELDER_SIGN)).toEqual(2);
     });
   });
-});
+
+  describe('on next round', () => {
+    it('errs if the game is not paused', () => {
+      const game = makeGame(
+          '', 1, {
+            'p1': 'ER',
+            'p2': 'RR',
+          },
+          'RR');
+
+      expect(() => onNextRound(game, new NextRound(game.id))).toThrowError(/Game must be paused/);
+    });
+
+    it('goes to next round when paused', () => {
+      const game = makeGame(
+          '', 1, {
+            'p1': 'ER',
+            'p2': 'RR',
+          },
+          'RR');
+      game.state = GameState.PAUSED;
+
+      onNextRound(game, new NextRound(game.id));
+
+      expect(game.state).toEqual(GameState.IN_PROGRESS);
+      expect(game.round).toEqual(2);
+    });
+  });
+})
+;
 
 function countInArray(arr: Card[], testCard: Card) {
   return arr.reduce((prev: number, card: Card) => {

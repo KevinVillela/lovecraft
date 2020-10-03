@@ -58,7 +58,17 @@
   </div>
 </div>
 
-<div class="end-container"
+<div class="center-container"
+     [@simpleFadeAnimation]="'in'"
+     *ngIf="game.value?.state === 'Paused'">
+  <button mat-flat-button matTooltip="Move on to the next round (anyone except Nolan can use this)."
+          (click)="nextRound()"
+          color="primary">
+    Next Round
+  </button>
+</div>
+
+<div class="center-container"
      [@simpleFadeAnimation]="'in'"
      *ngIf="game.value?.state === 'Cultists Win' || game.value?.state === 'Investigators Win'">
   <ng-container *ngIf="getBradleyMessage(); else noBradley; let bradleyMessage">

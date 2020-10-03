@@ -1,4 +1,4 @@
-import {ForceGameState, JoinGame, NewGame, RestartGame, SetInvestigator, StartGame, UpdateGameOptions} from '../actions/actions';
+import {ForceGameState, JoinGame, NewGame, NextRound, RestartGame, SetInvestigator, StartGame, UpdateGameOptions} from '../actions/actions';
 import {Card, Game, GameOptions, GameState, getPlayerOrDie, Player, Role} from '../models/models';
 
 import {dealCardsToPlayers, shuffle} from './utilities';
@@ -114,6 +114,13 @@ export function onRestartGame(game: Game | undefined, action: RestartGame) {
   return restartGame(game);
 }
 
+/**
+ * Handles a next round game action.
+ */
+export function onNextRound(game: Game | undefined, action: NextRound) {
+  return nextRound(game);
+}
+
 
 /**
  * Handles a force game state action.
@@ -183,6 +190,34 @@ function restartGame(game: Game) {
   // Start the game.
   startGame(newGame);
   return newGame;
+}
+
+/**
+ * Goes to the next round.
+ */
+function nextRound(game: Game) {
+  if (game.state !== GameState.PAUSED) {
+    throw new Error(`Game must be paused to go to the next round, but was in state ${game.state}`);
+  }
+
+  // Put the game back "in progress" and deal the cards out.
+  game.state = GameState.IN_PROGRESS;
+
+  // Gather up cards from all players.
+  const remainingCards = [];
+  for (const player of game.playerList) {
+    remainingCards.push(...player.hand);
+    player.hand = [];
+  }
+
+  // As well as any discards caused by things like evil presence.
+  remainingCards.push(...game.discards);
+  game.discards = [];
+
+  // Now deal them back out.
+  game.round++;
+  dealCardsToPlayers(game.playerList, remainingCards);
+  return game;
 }
 
 /**

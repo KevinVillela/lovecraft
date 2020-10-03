@@ -66,6 +66,10 @@ export class GameService {
     return from(this.gameFacade.restartGame(gameId)).pipe(take(1), wrap);
   }
 
+  nextRound(gameId: GameId) {
+    return from(this.gameFacade.nextRound(gameId)).pipe(take(1), wrap);
+  }
+
   forceGameState(game: Game): Promise<void> {
     return this.gameFacade.forceGameState(game);
   }
