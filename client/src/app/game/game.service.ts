@@ -5,6 +5,7 @@ import {error, StatusAnd, wrap} from '../common/status_and';
 import {from, Observable, Observer, of} from 'rxjs';
 import {take} from 'rxjs/operators';
 import {AngularFireAuth} from '@angular/fire/auth';
+import {DEFAULT_OPTIONS} from '../../../../game/reducers/game_reducers';
 
 /**
  * This provides an interface to the state of the game itself. In the current
@@ -32,7 +33,7 @@ export class GameService {
    */
   createGame(gameId: GameId): Observable<StatusAnd<void>> {
     try {
-      return from(this.gameFacade.createGame(gameId, this.username)).pipe(wrap);
+      return from(this.gameFacade.createGame(gameId, this.username, DEFAULT_OPTIONS)).pipe(wrap);
     } catch (e) {
       return of(error(e));
     }

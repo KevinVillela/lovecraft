@@ -312,7 +312,7 @@ export const SUPPORTED_SPECIAL_CARDS: Card[] = [
 /**
  * The default options if the user doesn't specify.
  */
-const DEFAULT_OPTIONS: GameOptions = {
+export const DEFAULT_OPTIONS: GameOptions = {
   specialCardCount: 0,
   cthulhuCount: 1,
 };

@@ -299,8 +299,7 @@ export class PlayComponent implements AfterViewInit {
   }
 
   nextRound(): void {
-    const nolan = this.game.getValue()?.playerList?.find((player) => player.id === 'Nolan Kelly');
-    if (nolan) {
+    if (this.currentPlayer?.id === 'Nolan Kelly') {
       this.errorService.displayErrorMessage('As per the Tooltip\'s documentation, Nolan is not allowed to use the Next Round button.');
       return;
     }
