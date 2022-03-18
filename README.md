@@ -35,6 +35,9 @@ is also located on the client.
 
 # For Developers
 
+To download the application, `clone` the repository and then run `npm install`
+from the root directory.
+
 To run the application locally, simply cd into the `client` directory and run
 `ng serve`. To deploy it to Firebase hosting, run `ng build --prod` and then
 cd to the base directory and run `firebase deploy`. You may need to download
@@ -42,7 +45,10 @@ the Angular and Firebase CLIs.
 
 To run the business logic tests, run `karma start my.conf.js` from the root
 directory. This will run all the tests in the `game/` directory. To run the
-client tests, run `ng test` from the `client` directory.
+client tests, run `ng test` from the `client` directory. There is currently
+no mechanism to ensure that these tests are passing when committing, so they
+may fail at any time. The `game/` tests are generally stable, but `client/`
+ones have been flaky in the past (and maybe the present).
 
 ## Open bugs
 - Does not look good on small screens (those that don't have much horizontal space)
