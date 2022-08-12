@@ -71,10 +71,10 @@
 <div class="center-container"
      [@simpleFadeAnimation]="'in'"
      *ngIf="game.value?.state === 'Cultists Win' || game.value?.state === 'Investigators Win'">
-  <ng-container *ngIf="getBradleyMessage(); else noBradley; let bradleyMessage">
-    <div class="animated intensifies ending">{{bradleyMessage}}</div>
+  <ng-container *ngIf="getInternMessage(); else noIntern; let internMessage">
+    <div class="animated intensifies ending">{{internMessage}}</div>
   </ng-container>
-  <ng-template #noBradley>
+  <ng-template #noIntern>
     <ng-container *ngIf="game.value?.state === 'Cultists Win'">
       <div class="animated intensifies ending">Cultists Win!!</div>
     </ng-container>

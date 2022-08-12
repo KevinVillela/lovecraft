@@ -50,6 +50,12 @@ interface GameStatus {
   miragePicked: boolean;
 }
 
+/** Message is chosen based on first name found. */
+const COOL_INTERNS = [
+  'Sam Sangraula',
+  'Bradley Moore',
+];
+
 @Component({
   selector: 'app-play',
   templateUrl: './play.component.html',
@@ -310,22 +316,29 @@ export class PlayComponent implements AfterViewInit {
     });
   }
 
-  getBradleyMessage(): string {
+  getInternMessage(): string {
     const game = this.game.getValue();
     if (!game || (game.state !== GameState.CULTISTS_WON && game.state !== GameState.INVESTIGATORS_WON)) {
       return '';
     }
-    const bradley = game.playerList.find((player) => player.id === 'Bradley Moore');
-    if (!bradley) {
-      return '';
+
+    for (const internName of COOL_INTERNS) {
+      const intern = game.playerList.find((player) => player.id === internName);
+
+      if (!intern) {
+        continue;
+      }
+
+      const team = intern.role;
+      if (team === Role.CULTIST && game.state === GameState.CULTISTS_WON ||
+        team === Role.INVESTIGATOR && game.state === GameState.INVESTIGATORS_WON) {
+          return `${internName.split(' ')[0]}'s team wins!!`;
+        } else {
+          return `${internName.split(' ')[0]}'s team loses :(`;
+        }
     }
-    const bradleysTeam = bradley.role;
-    if (bradleysTeam === Role.CULTIST && game.state === GameState.CULTISTS_WON ||
-        bradleysTeam === Role.INVESTIGATOR && game.state === GameState.INVESTIGATORS_WON) {
-      return 'Bradley\'s team wins!!'
-    } else {
-      return 'Bradley\'s team loses :('
-    }
+
+    return '';
   }
 
   /** Gets the current status of the game, in a way that the UI can comprehend it. */
